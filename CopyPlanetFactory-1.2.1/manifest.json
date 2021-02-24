@@ -1,0 +1,9 @@
+{
+    "name": "CopyPlanetFactory",
+    "version_number": "1.2.1",
+    "website_url": "https://www.bilibili.com/video/BV1jh411k7xr",
+    "description": "can copy all factory in local planet----------星球蓝图-复制当前星球的全部建筑",
+    "dependencies": [
+        "xiaoye97-BepInEx-5.4.5"
+    ]
+}
