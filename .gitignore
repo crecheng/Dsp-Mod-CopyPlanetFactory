@@ -21,3 +21,7 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+/.vs/*
+/CopyPlanetFactory/bin/*
+/CopyPlanetFactory/obj/*
