@@ -7,7 +7,7 @@ using BepInEx;
 using HarmonyLib;
 using UnityEngine;
 
-[BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory", "1.2.1")]
+[BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory", "1.4.0")]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
 	void Start()
@@ -58,7 +58,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 
 		rect = GUI.Window(1935598199, rect, mywindowfunction, "星球蓝图");
 
-		GUI.Label(new Rect(100, 100, 300, 700), Buginfo);
+		//GUI.Label(new Rect(100, 100, 300, 700), Buginfo);
 		if (isShow)
 		{
 			if (isShowItem)
@@ -89,10 +89,13 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	{
 		if (GUI.Button(new Rect(10, 20, 50, 20), ST.复制))
 		{
+			AreaTrue();
 			var factory = GetFactory();
 			if (factory != null)
 			{
 				FData.CopyPlanetFactoryDate(factory);
+				rect.width = 460f;
+				SelectData = FData;
 			}
 		}
 		if (GUI.Button(new Rect(rect.width - 20, 0, 20, 20), "X"))
@@ -115,7 +118,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			var player = GetPlayer();
 			if (player != null && PastIngData == null)
 			{
-				FData.PastePlanetFactoryDate(player);
+				FData.PastePlanetFactoryDate(player,area);
 				buildS = FData.buildS;
 				buildF = FData.buildF;
 				buildF1 = FData.buildF1;
@@ -126,6 +129,9 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		if (GUI.Button(new Rect(130, 20, 50, 20), ST.清空))
 		{
 			FData.ClearData();
+			SelectData = null;
+			rect.width = RECT_WEIDTH;
+			AreaFalse();
 		}
 
 		if (GUI.Button(new Rect(185, 20, 100, 20), ST.强制停止))
@@ -157,6 +163,116 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			}
 		}
 
+		if (SelectData != null)
+		{
+			int buttonW = 160;
+			int buttonH = 20;
+			if (GUI.Button(new Rect(290, 20, buttonW, buttonH), ST.粘贴))
+			{
+				PasteData(SelectData);
+			}
+			if (GUI.Button(new Rect(290, 40, buttonW, buttonH), ST.赤道 + "(Y)" + ST.镜像 + ST.粘贴))
+			{
+				PasteData(SelectData, ERotationType.Y);
+			}
+			if (GUI.Button(new Rect(290, 60, buttonW, buttonH), ST.左右 + "(Z)" + ST.镜像 + ST.粘贴))
+			{
+				PasteData(SelectData, ERotationType.Z);
+			}
+			if (GUI.Button(new Rect(290, 80, buttonW, buttonH), ST.东西 + "(X)" + ST.镜像 + ST.粘贴))
+			{
+				PasteData(SelectData, ERotationType.X);
+			}
+			if (GUI.Button(new Rect(290, 100, buttonW, buttonH), "XY " + ST.镜像 + ST.粘贴))
+			{
+				PasteData(SelectData, ERotationType.XY);
+			}
+			if (GUI.Button(new Rect(290, 120, buttonW, buttonH), "XZ " + ST.镜像 + ST.粘贴))
+			{
+				PasteData(SelectData, ERotationType.XZ);
+			}
+			if (GUI.Button(new Rect(290, 140, buttonW, buttonH), "YZ " + ST.镜像 + ST.粘贴))
+			{
+				PasteData(SelectData, ERotationType.YZ);
+			}
+			if (GUI.Button(new Rect(290, 160, buttonW, buttonH), "XYZ " + ST.镜像 + ST.粘贴))
+			{
+				PasteData(SelectData, ERotationType.XYZ);
+			}
+			if (GUI.Button(new Rect(290, 200, buttonW, buttonH), ST.区域选择))
+			{
+				isShowMore = !isShowMore;
+                if (isShowMore)
+                {
+					rect.width = 560f;
+                }
+                else
+                {
+					rect.width = 460f;
+				}
+			}
+			if (isShowMore)
+			{
+				int bc = 1;
+				if (GUI.Button(new Rect(455, 20 * bc++, 100, 20), ST.北 + ST.半球))
+				{
+					AreaFalse();
+					area[0] = true;
+					area[1] = true;
+					area[4] = true;
+					area[5] = true;
+				}
+				if (GUI.Button(new Rect(455, 20 * bc++, 100, 20), ST.南 + ST.半球))
+				{
+					AreaFalse();
+					area[2] = true;
+					area[3] = true;
+					area[6] = true;
+					area[7] = true;
+				}
+				if (GUI.Button(new Rect(455, 20 * bc++, 100, 20), ST.东 + ST.半球))
+				{
+					AreaFalse();
+					area[0] = true;
+					area[1] = true;
+					area[2] = true;
+					area[3] = true;
+				}
+				if (GUI.Button(new Rect(455, 20 * bc++, 100, 20), ST.西 + ST.半球))
+				{
+					AreaFalse();
+					area[4] = true;
+					area[5] = true;
+					area[6] = true;
+					area[7] = true;
+				}
+				if (GUI.Button(new Rect(455, 20 * bc++, 100, 20), ST.左 + ST.半球))
+				{
+					AreaFalse();
+					area[1] = true;
+					area[3] = true;
+					area[5] = true;
+					area[7] = true;
+				}
+				if (GUI.Button(new Rect(455, 20 * bc++, 100, 20), ST.右 + ST.半球))
+				{
+					AreaFalse();
+					area[0] = true;
+					area[2] = true;
+					area[4] = true;
+					area[6] = true;
+				}
+				area[0] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[0], "1:+X,+Y,+Z");
+				area[1] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[1], "2:+X,+Y, -Z");
+				area[2] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[2], "3:+X, -Y,+Z");
+				area[3] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[3], "4:+X, -Y, -Z");
+				area[4] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[4], "5: -X,+Y,+Z");
+				area[5] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[5], "6: -X,+Y, -Z");
+				area[6] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[6], "7: -X, -Y,+Z");
+				area[7] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[7], "8: -X, -Y, -Z");
+			}
+		}
+
 		FData.Name = GUI.TextArea(new Rect(10, 45, 100, 20), FData.Name);
 		FData.Name.Replace("\\", "").Replace("/", "").Replace("?", "").Replace("|", "").Replace("<", "").Replace(">", "").Replace(":", "").Replace("*", "").Replace("\"", "");
 		if (GUI.Button(new Rect(130, 45, 50, 20), ST.保存))
@@ -184,28 +300,11 @@ public class CopyPlanetFactory : BaseUnityPlugin
 					isShowItem = true;
 				}
 			}
-			if (GUI.Button(new Rect(130, 155 + j * 23, 50, 20), ST.粘贴))
+			if (GUI.Button(new Rect(130, 155 + j * 23, 50, 20), ST.选定))
 			{
-				var player = GetPlayer();
-				if (player != null && PastIngData == null)
-				{
-					d.PastePlanetFactoryDate(player);
-					buildS = d.buildS;
-					buildF = d.buildF;
-					buildF1 = d.buildF1;
-					buildF2 = d.buildF2;
-					info = d.Name + ST.粘贴 + ST.成功;
-					PastIngData = d;
-					if (PastIngData.WaitBuildCount > 0)
-					{
-						isShowItem = true;
-						noItem = PastIngData.GetWaitNeedItem;
-						noItemCount = PastIngData.GetWaitItemDCount;
-						haveItem = string.Empty;
-						haveItemCount = 0;
-					}
-				}
-
+				SelectData = d;
+				AreaTrue();
+				rect.width = 460f;
 			}
 			j++;
 		}
@@ -219,6 +318,46 @@ public class CopyPlanetFactory : BaseUnityPlugin
 
 		GUI.DragWindow(new Rect(0, 0, 10000, 10000));
 	}
+
+	private void PasteData(PlanetFactoryData data,ERotationType rotationType=ERotationType.Null)
+    {
+		var player = GetPlayer();
+		if (player != null && PastIngData == null)
+		{
+			data.PastePlanetFactoryDate(player,area, rotationType);
+			buildS = data.buildS;
+			buildF = data.buildF;
+			buildF1 = data.buildF1;
+			buildF2 = data.buildF2;
+			info = data.Name + ST.粘贴 + ST.成功;
+			PastIngData = data;
+			if (PastIngData.WaitBuildCount > 0)
+			{
+				isShowItem = true;
+				noItem = PastIngData.GetWaitNeedItem;
+				noItemCount = PastIngData.GetWaitItemDCount;
+				haveItem = string.Empty;
+				haveItemCount = 0;
+			}
+		}
+	}
+
+	public void AreaFalse()
+    {
+		for(int i = 0; i < 8; i++)
+        {
+			area[i] = false;
+        }
+    }
+
+	public void AreaTrue()
+	{
+		for (int i = 0; i < 8; i++)
+		{
+			area[i] = true;
+		}
+	}
+
 	[HarmonyPostfix]
 	[HarmonyPatch(typeof(PlanetFactory), "AddEntityDataWithComponents")]
 	static void getEntityId(PlanetFactory __instance, EntityData entity, int prebuildId, ref int __result)
@@ -271,30 +410,37 @@ public class CopyPlanetFactory : BaseUnityPlugin
                 Buginfo = "eid:"+ce.id.ToString();
 				Buginfo += "\npos:" + ed.pos;
 				Buginfo += "\nrot:" + ed.rot;
-                //Buginfo += "\ninsertOffset:" + bd.backInputId;
-                //Buginfo += "\noutputId:" + bd.outputId;
-                //Buginfo += "\nleftInputId:" + bd.leftInputId;
-                //Buginfo += "\nrightInputId:" + bd.rightInputId;
-                //Buginfo += "\nsegIndex:" + bd.segIndex;
-                //Buginfo += "\nsegLength:" + bd.segLength;
-                //Buginfo += "\nsegPathId:" + bd.segPathId;
-                //Buginfo += "\nsegPivotOffset:" + bd.segPivotOffset;
-                //Buginfo += "\ncoon:";
-                //if (ce.id >0)
-                //{
-                //	for(int i = 0; i < 16; i++)
-                //    {
-                //		int conn = player.planetData.factory.entityConnPool[ce.id * 16 + i];
-                //		player.planetData.factory.ReadObjectConn(ce.id, i, out bool isO, out int other, out int slot);
-                //		Buginfo +=i+":"+ conn + "," + isO + "," + other + "," + slot+"\n";
-                //    }
-                //}
-                //if (PastIngData != null)
-                //{
-                //	Buginfo += "\n"+PastIngData.working;
-                //	Buginfo += "\n"+PastIngData.preIdMap.Count;
-                //	Buginfo += "\n"+PastIngData.BuildBeltData.Count;
-                //}
+				Buginfo += "\nrot.eulerAngles:" + ed.rot.eulerAngles;
+                if (ce.inserterId > 0)
+                {
+					var d = player.factory.factorySystem.inserterPool[ce.inserterId];
+					Buginfo += "\npos2:" + d.pos2;
+					Buginfo += "\nrot2:" + d.rot2;
+				}
+				//Buginfo += "\ninsertOffset:" + bd.backInputId;
+				//Buginfo += "\noutputId:" + bd.outputId;
+				//Buginfo += "\nleftInputId:" + bd.leftInputId;
+				//Buginfo += "\nrightInputId:" + bd.rightInputId;
+				//Buginfo += "\nsegIndex:" + bd.segIndex;
+				//Buginfo += "\nsegLength:" + bd.segLength;
+				//Buginfo += "\nsegPathId:" + bd.segPathId;
+				//Buginfo += "\nsegPivotOffset:" + bd.segPivotOffset;
+				//Buginfo += "\ncoon:";
+				//if (ce.id >0)
+				//{
+				//	for(int i = 0; i < 16; i++)
+				//    {
+				//		int conn = player.planetData.factory.entityConnPool[ce.id * 16 + i];
+				//		player.planetData.factory.ReadObjectConn(ce.id, i, out bool isO, out int other, out int slot);
+				//		Buginfo +=i+":"+ conn + "," + isO + "," + other + "," + slot+"\n";
+				//    }
+				//}
+				//if (PastIngData != null)
+				//{
+				//	Buginfo += "\n"+PastIngData.working;
+				//	Buginfo += "\n"+PastIngData.preIdMap.Count;
+				//	Buginfo += "\n"+PastIngData.BuildBeltData.Count;
+				//}
 
 			}
 
@@ -355,13 +501,16 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	private static PlanetFactoryData FData = new PlanetFactoryData();
 	private static List<PlanetFactoryData> PList = new List<PlanetFactoryData>();
 	private static string Buginfo = string.Empty;
-	private static Rect rect = new Rect(330f, 30f, 320f, 420f);
+	private const float RECT_WEIDTH = 300f;
+	private static Rect rect = new Rect(330f, 30f, RECT_WEIDTH, 420f);
 	private static GUIStyle haveStyle = new GUIStyle();
 	private static GUIStyle noStyle = new GUIStyle();
 	private static int haveItemCount = 0;
 	private static int noItemCount = 0;
+	private static bool[] area = new bool[8];
+	private static PlanetFactoryData SelectData = null;
 	private static string haveItem = string.Empty;
 	private static string noItem = string.Empty;
-	
+	private static bool isShowMore = false;
 }
 

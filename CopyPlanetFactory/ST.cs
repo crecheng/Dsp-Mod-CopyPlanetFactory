@@ -292,5 +292,198 @@ public class ST
         }
     }
 
+    public static string 赤道
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "赤道";
+            }
+            else
+            {
+                return "equator ";
+            }
+        }
+    }
+
+    public static string 镜像
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "镜像";
+            }
+            else
+            {
+                return "mirror ";
+            }
+        }
+    }
+
+    public static string 左右
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "左右";
+            }
+            else
+            {
+                return "LR ";
+            }
+        }
+    }
+
+    public static string 东西
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "东西";
+            }
+            else
+            {
+                return "EW";
+            }
+        }
+    }
+    public static string 选定
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "选定";
+            }
+            else
+            {
+                return "Select";
+            }
+        }
+    }
+
+    public static string 半球
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "半球";
+            }
+            else
+            {
+                return " hemisphere";
+            }
+        }
+    }
+
+    public static string 北
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "北";
+            }
+            else
+            {
+                return "N";
+            }
+        }
+    }
+
+    public static string 东
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "东";
+            }
+            else
+            {
+                return "E";
+            }
+        }
+    }
+
+    public static string 西
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "西";
+            }
+            else
+            {
+                return "W";
+            }
+        }
+    }
+
+    public static string 南
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "南";
+            }
+            else
+            {
+                return "S";
+            }
+        }
+    }
+
+    public static string 左
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "左";
+            }
+            else
+            {
+                return "L";
+            }
+        }
+    }
+
+    public static string 右
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "右";
+            }
+            else
+            {
+                return "R";
+            }
+        }
+    }
+    public static string 区域选择
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "区域选择";
+            }
+            else
+            {
+                return "area select";
+            }
+        }
+    }
+
 }
 

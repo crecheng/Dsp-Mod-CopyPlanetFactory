@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CopyPlanetFactory.cs" />
+    <Compile Include="ERotationType.cs" />
     <Compile Include="PlanetFactoryData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ST.cs" />

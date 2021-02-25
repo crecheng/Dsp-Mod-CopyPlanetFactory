@@ -101,6 +101,8 @@ public class PlanetFactoryData
 	private string itemNeedString;
 	private int itemNeedCount;
 	private bool isInitItem;
+	private ERotationType RotationType;
+	private bool[] area;
 	public int WaitBuildCount
 	{
 		get
@@ -235,6 +237,7 @@ public class PlanetFactoryData
 		Name = String.Empty;
 		BeltCount = 0;
 		isInitItem = false;
+		RotationType = ERotationType.Null;
 	}
 
 	public void ClearData()
@@ -268,6 +271,7 @@ public class PlanetFactoryData
 		buildF1 = 0;
 		buildF2 = 0;
 		BeltCount = 0;
+		RotationType = ERotationType.Null;
 	}
 
 	/// <summary>
@@ -417,23 +421,23 @@ public class PlanetFactoryData
     {
 		foreach(var d in AssemblerDate)
         {
-			AddItemCount(d.protoId);
+			AddItemCount(d.ProtoId);
         }
 		foreach (var d in PowerData)
 		{
-			AddItemCount(d.protoId);
+			AddItemCount(d.ProtoId);
 		}
 		foreach (var d in PowerNodeData)
 		{
-			AddItemCount(d.protoId);
+			AddItemCount(d.ProtoId);
 		}
 		foreach (var d in InserterData)
 		{
-			AddItemCount(d.protoId);
+			AddItemCount(d.ProtoId);
 		}
 		foreach (var d in BeltData)
 		{
-			AddItemCount(d.protoId);
+			AddItemCount(d.ProtoId);
 		}
 		isInitItem = true;
 	}
@@ -446,7 +450,7 @@ public class PlanetFactoryData
 		List<MyPrebuildData> temp = new List<MyPrebuildData>();
 		foreach (var d in AssemblerDate)
 		{
-			if (d.protoId == 0)
+			if (d.ProtoId == 0)
 				temp.Add(d);
 		}
 		foreach(var d in temp)
@@ -457,7 +461,7 @@ public class PlanetFactoryData
 
 		foreach (var d in PowerData)
 		{
-			if (d.protoId == 0)
+			if (d.ProtoId == 0)
 				temp.Add(d);
 		}
 		foreach (var d in temp)
@@ -468,7 +472,7 @@ public class PlanetFactoryData
 
 		foreach (var d in PowerNodeData)
 		{
-			if (d.protoId == 0)
+			if (d.ProtoId == 0)
 				temp.Add(d);
 		}
 		foreach (var d in temp)
@@ -479,7 +483,7 @@ public class PlanetFactoryData
 
 		foreach (var d in InserterData)
 		{
-			if (d.protoId == 0)
+			if (d.ProtoId == 0)
 				temp.Add(d);
 		}
 		foreach (var d in temp)
@@ -490,7 +494,7 @@ public class PlanetFactoryData
 
 		foreach (var d in BeltData)
 		{
-			if (d.protoId == 0)
+			if (d.ProtoId == 0)
 				temp.Add(d);
 		}
 		foreach (var d in temp)
@@ -687,11 +691,29 @@ public class PlanetFactoryData
 		}
 	}
 
+
+	public void AddPasteData(Player player1,MyPrebuildData d)
+    {
+		if (IsInArea(d.Pos, area))
+		{
+			//复制一份数据
+			var dd = new MyPrebuildData(d);
+			//加入预建造数据
+			AddPrebuildData(player1, dd, out int pid);
+			//如果加入成功
+			if (pid > 0)
+			{
+				dd.preId = pid;
+				//加入预建造数据
+				preIdMap.Add(pid, dd);
+			}
+		}
+	}
 	/// <summary>
 	/// 粘贴建筑
 	/// </summary>
 	/// <param name="player1">玩家</param>
-	public void PastePlanetFactoryDate(Player player1)
+	public void PastePlanetFactoryDate(Player player1 ,bool[] SelectArea,ERotationType rotationType=ERotationType.Null)
 	{
 		if (CheckData())
 		{
@@ -702,6 +724,8 @@ public class PlanetFactoryData
 			planetFactory = factory;
 			//粘贴前清空数据
 			PasteClear();
+			RotationType = rotationType;
+			area = SelectArea;
 			//复制当前星球实体位置数据，用于进行重叠检测
 			for (int i = 1; i < factory.entityCursor; i++)
 			{
@@ -727,61 +751,41 @@ public class PlanetFactoryData
 			//粘贴工作台
 			foreach (var d in AssemblerDate)
 			{
-				//复制一份数据
-				var dd = new MyPrebuildData(d);
-				//加入预建造数据
-				AddPrebuildData(player, dd, out int pid);
-				//如果加入成功
-				if (pid > 0)
-				{
-					dd.preId = pid;
-					//加入预建造数据
-					preIdMap.Add(pid, dd);
-				}
+				AddPasteData(player1, d);
 			}
 			///粘贴发电机
 			foreach (var d in PowerData)
 			{
-				var dd = new MyPrebuildData(d);
-				AddPrebuildData(player, dd, out int pid);
-				if (pid > 0)
-				{
-					dd.preId = pid;
-					preIdMap.Add(pid, dd);
-				}
+				AddPasteData(player1, d);
 			}
 			//粘贴电线杆数据
 			foreach (var d in PowerNodeData)
 			{
-				var dd = new MyPrebuildData(d);
-				AddPrebuildData(player, dd, out int pid);
-				if (pid > 0)
-				{
-					dd.preId = pid;
-					preIdMap.Add(pid, dd);
-				}
+				AddPasteData(player1, d);
 			}
 			//粘贴传送带数据
 			foreach (var d in BeltData)
 			{
-                
-				var dd = new MyPrebuildData(d);
-				if (BeltCount< 1000)
+				if (IsInArea(d.Pos, SelectArea))
 				{
-					AddPrebuildData(player, dd, out int pid, true);
-					//Debug.Log(pid);
-					if (pid > 0)
+					var dd = new MyPrebuildData(d);
+					if (BeltCount < 1000)
 					{
-						haveBelt = true;
-						dd.preId = pid;
-						preIdMap.Add(pid, dd);
+						AddPrebuildData(player, dd, out int pid, true);
+						//Debug.Log(pid);
+						if (pid > 0)
+						{
+							haveBelt = true;
+							dd.preId = pid;
+							preIdMap.Add(pid, dd);
+						}
+						BeltCount++;
 					}
-					BeltCount++;
+					else
+					{
+						BeltQueue.Enqueue(dd);
+					}
 				}
-                else
-                {
-					BeltQueue.Enqueue(dd);
-                }
 			}
 
 			if (InserterData.Count > 0)
@@ -789,8 +793,11 @@ public class PlanetFactoryData
 			//将爪子数据加入备选列表
 			foreach (var d in InserterData)
 			{
-				var dd = new MyPrebuildData(d);
-				PreInserterData.Add(dd);
+				if (IsInArea(d.Pos, SelectArea))
+				{
+					var dd = new MyPrebuildData(d);
+					PreInserterData.Add(dd);
+				}
 			}
 			if (preIdMap.Count == 0)
 			{
@@ -1193,6 +1200,97 @@ public class PlanetFactoryData
 		pf.cargoTraffic.AlterBeltConnections(beltId, out1, in1, in2, in3);
 	}
 
+	private bool IsInArea(Vector3 pos,bool[] area)
+    {
+		int count = 0;
+		if (pos.x < 0)
+			count += 4;
+		if (pos.y < 0)
+			count += 2;
+		if (pos.z < 0)
+			count += 1;
+		return area[count];
+	}
+
+	public static Quaternion GetNewRot(Quaternion q,ERotationType type)
+    {
+		if (type == ERotationType.Null)
+			return q;
+		var euler = q.eulerAngles;
+        switch (type)
+        {
+			case ERotationType.X:
+				euler.y = 360f - euler.y;
+				break;
+			case ERotationType.Y:
+				euler.y = (euler.y + 180f) % 360f;
+				euler.z = (euler.z + 180f) % 360f;
+				break;
+			case ERotationType.Z:
+				euler.y = (540f - euler.y)%360;
+				break;
+			case ERotationType.XY:
+				euler.y = 360f - euler.y;
+				euler.y = (euler.y + 180f) % 360f;
+				euler.z = (euler.z + 180f) % 360f;
+				break;
+			case ERotationType.XZ:
+				euler.y = 360f - euler.y;
+				euler.y = (540f - euler.y) % 360;
+				break;
+			case ERotationType.YZ:
+				euler.y = (euler.y + 180f) % 360f;
+				euler.z = (euler.z + 180f) % 360f;
+				euler.y = (540f - euler.y) % 360;
+				break;
+			case ERotationType.XYZ:
+				euler.y = 360f - euler.y;
+				euler.y = (euler.y + 180f) % 360f;
+				euler.z = (euler.z + 180f) % 360f;
+				euler.y = (540f - euler.y) % 360;
+				break;
+
+		}
+		q.eulerAngles = euler;
+		return q;
+    }
+
+	public static Vector3 GetNewPos(Vector3 pos, ERotationType type)
+    {
+		if (type == ERotationType.Null)
+			return pos;
+		switch (type)
+		{
+			case ERotationType.X:
+				pos.x = -pos.x;
+				break;
+			case ERotationType.Y:
+				pos.y = -pos.y;
+				break;
+			case ERotationType.Z:
+				pos.z = -pos.z;
+				break;
+			case ERotationType.XY:
+				pos.x = -pos.x;
+				pos.y = -pos.y;
+				break;
+			case ERotationType.XZ:
+				pos.x = -pos.x;
+				pos.z = -pos.z;
+				break;
+			case ERotationType.YZ:
+				pos.z = -pos.z;
+				pos.y = -pos.y;
+				break;
+			case ERotationType.XYZ:
+				pos.x = -pos.x;
+				pos.y = -pos.y;
+				pos.z = -pos.z;
+				break;
+
+		}
+		return pos;
+	}
 	/// <summary>
 	/// 添加预建筑数据
 	/// </summary>
@@ -1204,8 +1302,9 @@ public class PlanetFactoryData
 	public bool AddPrebuildData(Player player, MyPrebuildData d, out int pId, bool IgnoreOverlap = false)
 	{
 		pId = -1;
-		if (player.package.GetItemCount(d.protoId) > 0)
+		if (player.package.GetItemCount(d.ProtoId) > 0)
 		{
+			d.SetNewRot(RotationType);
 			if (!IgnoreOverlap)
 			{
 				int posD = d.posSetNum;
@@ -1213,7 +1312,7 @@ public class PlanetFactoryData
 				{
 					int eid = posSet[posD];
 					//Debug.Log($"{eid},{player.planetData.factory.entityPool[eid].protoId},{d.protoId}");
-					if (player.planetData.factory.entityPool[eid].protoId == d.protoId)
+					if (player.planetData.factory.entityPool[eid].protoId == d.ProtoId)
                     {
 						d.newEId = eid;
 						eIdMap.Add(d.oldEId, eid);
@@ -1231,10 +1330,15 @@ public class PlanetFactoryData
 
 					int eid = floatPosSet[pos];
 					//Debug.Log($"{eid},{player.planetData.factory.entityPool[eid].protoId},{d.protoId}");
-					if (player.planetData.factory.entityPool[eid].protoId == d.protoId)
+					if (player.planetData.factory.entityPool[eid].protoId == d.ProtoId)
 					{
 						d.newEId = eid;
 						eIdMap.Add(d.oldEId, eid);
+
+					}
+					if (player.planetData.factory.entityPool[eid].beltId > 0)
+					{
+						BeltEIdMap.Add(d.oldEId, eid);
 					}
 					buildF1++;
 					buildF++;
@@ -1244,7 +1348,7 @@ public class PlanetFactoryData
 			//Debug.Log(d.protoId);
 			pId = player.factory.AddPrebuildDataWithComponents(d.pd);
 			int e = player.planetData.factory.prebuildPool[pId].upEntity;
-			player.package.TakeItem(d.protoId, 1);
+			player.package.TakeItem(d.ProtoId, 1);
 			buildS++;
 			//var fs= File.Open(@"D:\Debug.json",FileMode.Append);
 			//StreamWriter sw = new StreamWriter(fs);
@@ -1261,7 +1365,7 @@ public class PlanetFactoryData
         else
         {
 			WaitItemBuild.Add(d);
-			AddWaitNeedIiem(d.protoId);
+			AddWaitNeedIiem(d.ProtoId);
 			buildF2++;
 			buildF++;
 			return false;
@@ -1293,6 +1397,7 @@ public class PlanetFactoryData
 		}
 		return false;
 	}
+
 
 	/// <summary>
 	/// 获取工作台主要数据
@@ -1440,6 +1545,7 @@ public class PlanetFactoryData
 		public int beltIn3;
 		public bool isBelt;
 		public bool isInserter;
+		public bool isNewRot;
 
 		public MyPrebuildData(MyPrebuildData data)
 		{
@@ -1561,13 +1667,42 @@ public class PlanetFactoryData
 			//	Debug.LogError(e.Message);
 			//}
 		}
-		public int protoId
+
+		public void SetNewRot(ERotationType type)
+        {
+			if (!isNewRot)
+			{
+				pd.pos = GetNewPos(pd.pos, type);
+				pd.rot = GetNewRot(pd.rot, type);
+				pd.pos2 = GetNewPos(pd.pos2, type);
+				pd.rot2 = GetNewRot(pd.rot2, type);
+				isNewRot = true;
+			}
+        }
+		public void Init()
+		{
+			isBelt = false;
+			isInserter = false;
+			oldEId = 0;
+			newEId = 0;
+			isNewRot = false;
+		}
+		public int ProtoId
 		{
 			get
 			{
 				return pd.protoId;
 			}
 		}
+
+		public Vector3 Pos
+        {
+            get
+            {
+				return pd.pos;
+            }
+        }
+
 
 		public string GetAssemblerData()
 		{
@@ -1603,13 +1738,7 @@ public class PlanetFactoryData
 				return (int)(x * 1000000 + y * 1000 + z);
 			}
 		}
-		public void Init()
-		{
-			isBelt = false;
-			isInserter = false;
-			oldEId = 0;
-			newEId = 0;
-		}
+
 	}
 }
 
