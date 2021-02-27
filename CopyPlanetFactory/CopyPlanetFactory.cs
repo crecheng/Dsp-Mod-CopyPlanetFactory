@@ -7,9 +7,10 @@ using BepInEx;
 using HarmonyLib;
 using UnityEngine;
 
-[BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory", "1.4.2")]
+[BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory",CopyPlanetFactory.Version )]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
+	public const string Version = "1.4.5";
 	void Start()
 	{
 		Harmony.CreateAndPatchAll(typeof(CopyPlanetFactory), null);
@@ -56,7 +57,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	void OnGUI()
 	{
 
-		rect = GUI.Window(1935598199, rect, mywindowfunction, "星球蓝图");
+		rect = GUI.Window(1935598199, rect, mywindowfunction, "星球蓝图"+Version);
 
 		//GUI.Label(new Rect(100, 100, 300, 700), Buginfo);
 		if (isShow)
@@ -71,12 +72,16 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			if (PastIngData != null)
 			{
 				info1 = (confirmStop ? $"【{ST.确认强制停止}?】\n" : "") +
-					$"{ST.正在建造}：{PastIngData.preIdMap.Count}\n" +
-					$"{ST.建造完成}：{PastIngData.eIdMapCount}\n" +
-					$"{ST.等待爪子}：{PastIngData.PreInserterDateCount}\n" +
-					$"{ST.建造爪子}：{PastIngData.preInserterMap.Count}\n" +
-					$"{ST.传送带队列}：{PastIngData.BeltQueueCount}\n" +
-					$"{ST.等待补充}:{PastIngData.WaitBuildCount}\n";
+					(PastIngData.playerHaveBeltItem?"": $"【{ST.缺少传送带}!!!】\n") +
+					(PastIngData.playerHaveInserterItem ? "" : $"【{ST.缺少爪子}!!!】\n") +
+					$"【{PastIngData.Name}】\n" +
+					$"{ST.正在建造}\n{PastIngData.preIdMap.Count}\n" +
+					$"{ST.建造完成}\n{PastIngData.eIdMapCount}\n" +
+					$"{ST.等待爪子}\n{PastIngData.PreInserterDateCount}\n" +
+					$"{ST.建造爪子}\n{PastIngData.preInserterMap.Count}\n" +
+					$"{ST.传送带队列}\n{PastIngData.BeltQueueCount}\n" +
+					$"{ST.等待物品}\n{PastIngData.WaitBuildCount}\n" +
+					$"{ST.等待连接传送带}\n{PastIngData.BuildBeltData.Count}";
 				if (!PastIngData.Working)
 				{
 					PastIngData = null;
@@ -88,7 +93,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	static float oldRectW=360f;
 	void mywindowfunction(int windowid)
 	{
-		if (GUI.Button(new Rect(rect.width - 20, 0, 20, 20), "X"))
+		if (GUI.Button(new Rect(rect.width - 20, 0, 20, 20), (isShow?"X":"O")))
 		{
 			isShow = !isShow;
 			if (isShow)
@@ -410,7 +415,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			if (planetData.factory != null)
 			{
 				int count = FData.Count;
-				info = $"{ST.复制建筑}：{count}\n{ST.成功}：{buildS}  {ST.跳过}：{buildF}\n{ST.重叠}：{buildF1} {ST.缺物}：{buildF2}" +
+				info = $"{ST.复制建筑}：{count}\n{ST.成功}：{buildS} {ST.重叠}：{buildF1}" +
 					(PastIngData != null?$"\n【-{ST.正在复制}-】\n":"")+
 					$"\n暂时忽略地形碰撞检测\n";
 			}

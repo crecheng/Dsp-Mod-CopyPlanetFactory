@@ -85,6 +85,9 @@ public class PlanetFactoryData
 	/// 已经加入预建造的传送带数量
 	/// </summary>
 	private int BeltCount = 0;
+
+	public bool playerHaveBeltItem { private set; get;  }
+	public bool playerHaveInserterItem { private set; get;  }
 	/// <summary>
 	/// 文件名
 	/// </summary>
@@ -238,6 +241,7 @@ public class PlanetFactoryData
 		BeltCount = 0;
 		isInitItem = false;
 		RotationType = ERotationType.Null;
+		playerHaveBeltItem = true;
 	}
 
 	public void ClearData()
@@ -275,6 +279,7 @@ public class PlanetFactoryData
 		buildF2 = 0;
 		BeltCount = 0;
 		RotationType = ERotationType.Null;
+		playerHaveBeltItem = true;
 	}
 
 	/// <summary>
@@ -335,9 +340,11 @@ public class PlanetFactoryData
 		{
 			if (GameMain.mainPlayer.factory == planetFactory)
 			{
-				if (WaitItemBuild.Count > 0)
+				if (WaitItemBuild.Count > 0||BeltQueue.Count>0||PreInserterData.Count>0)
 				{
 					var player = GameMain.mainPlayer;
+					playerHaveBeltItem = true;
+					playerHaveInserterItem = true;
 					List<MyPrebuildData> temp = new List<MyPrebuildData>();
 					temp.AddRange(WaitItemBuild);
 					
@@ -380,6 +387,7 @@ public class PlanetFactoryData
 							}
 						}
 					}
+					TryBuildInserter();
 					SetWaitItemString();
 				}
 			}
@@ -830,13 +838,15 @@ public class PlanetFactoryData
 	/// </summary>
 	public void BeltQueueDequeue()
     {
-		if (BeltQueue.Count > 0)
+		if (BeltQueue.Count > 0&&playerHaveBeltItem)
 		{
+			BeltCount--;
 			var dd = BeltQueue.Dequeue();
 			AddPrebuildData(player, dd, out int pid, true);
 			//Debug.Log(pid);
 			if (pid > 0)
 			{
+				BeltCount++;
 				haveBelt = true;
 				dd.preId = pid;
 				preIdMap.Add(pid, dd);
@@ -1091,7 +1101,8 @@ public class PlanetFactoryData
 	/// </summary>
 	public void TryBuildInserter()
 	{
-
+		if (!playerHaveInserterItem)
+			return;
 		List<MyPrebuildData> temp = new List<MyPrebuildData>();
 		foreach (var d in PreInserterData)
 		{
@@ -1114,15 +1125,18 @@ public class PlanetFactoryData
 			}
 
 		}
+		if (preIdMap.Count == 0 && BuildBeltData.Count == 0 && WaitItemBuild.Count == 0 && BeltQueue.Count == 0 && temp.Count == 0)
+		{
+			PreInserterData.Clear();
+			temp.Clear();
+			Check();
+		}
 		foreach (var re in temp)
 		{
 			PreInserterData.Remove(re);
 		}
-		if (preIdMap.Count == 0&&BuildBeltData.Count==0&&WaitItemBuild.Count==0&&BeltQueue.Count==0)
-		{
-			PreInserterData.Clear();
-			Check();
-		}
+
+
 	}
 
 	/// <summary>
@@ -1409,6 +1423,19 @@ public class PlanetFactoryData
         }
         else
         {
+            if (d.isBelt)
+            {
+				playerHaveBeltItem = false;
+            }
+            if (d.isInserter)
+            {
+				playerHaveInserterItem = false;
+
+			}
+			if ((d.isBelt&&!playerHaveBeltItem)||(d.isInserter&&!playerHaveInserterItem))
+			{
+				return false;
+			}
 			WaitItemBuild.Add(d);
 			AddWaitNeedIiem(d.ProtoId);
 			buildF2++;

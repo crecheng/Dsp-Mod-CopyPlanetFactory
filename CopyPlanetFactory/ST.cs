@@ -102,7 +102,22 @@ public class ST
             }
             else
             {
-                return "Conveyor queue";
+                return "belt queue";
+            }
+        }
+    }
+
+    public static string 等待连接传送带
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "等待连接传送带";
+            }
+            else
+            {
+                return "wait to connect belt";
             }
         }
     }
@@ -117,6 +132,35 @@ public class ST
             else
             {
                 return "Confirm forced stop";
+            }
+        }
+    }
+    public static string 缺少传送带
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "缺少传送带";
+            }
+            else
+            {
+                return "Missin Belt";
+            }
+        }
+    }
+
+    public static string 缺少爪子
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "缺少爪子";
+            }
+            else
+            {
+                return "Missin Paw";
             }
         }
     }
@@ -277,7 +321,7 @@ public class ST
             }
         }
     }
-    public static string 等待补充
+    public static string 等待物品
     {
         get
         {
