@@ -248,6 +248,9 @@ public class PlanetFactoryData
 		PowerData.Clear();
 		PowerNodeData.Clear();
 		isInitItem = false;
+		itemNeedCount = 0;
+		itemNeedString = string.Empty;
+		ItemNeed.Clear();
 		PasteClear();
 	}
 
@@ -335,11 +338,12 @@ public class PlanetFactoryData
 				if (WaitItemBuild.Count > 0)
 				{
 					var player = GameMain.mainPlayer;
-					MyPrebuildData[] temp = new MyPrebuildData[WaitItemBuild.Count];
-					WaitItemBuild.CopyTo(temp);
+					List<MyPrebuildData> temp = new List<MyPrebuildData>();
+					temp.AddRange(WaitItemBuild);
+					
 					WaitItemBuild.Clear();
 					WaitNeedItem.Clear();
-					Debug.Log(WaitItemBuild.Count);
+					//Debug.Log(WaitItemBuild.Count);
 					foreach (var d in temp)
 					{
 						var dd = new MyPrebuildData(d);
@@ -419,6 +423,7 @@ public class PlanetFactoryData
 	/// </summary>
 	public void InitItemNeed()
     {
+		ItemNeed.Clear();
 		foreach(var d in AssemblerDate)
         {
 			AddItemCount(d.ProtoId);
@@ -709,12 +714,22 @@ public class PlanetFactoryData
 			}
 		}
 	}
+
+	static bool haveAddPasteData = false;
 	/// <summary>
 	/// 粘贴建筑
 	/// </summary>
 	/// <param name="player1">玩家</param>
 	public void PastePlanetFactoryDate(Player player1 ,bool[] SelectArea,ERotationType rotationType=ERotationType.Null)
 	{
+        if (haveAddPasteData)
+        {
+			return;
+        }
+        else
+        {
+			haveAddPasteData = true;
+        }
 		if (CheckData())
 		{
 			player = player1;
@@ -806,6 +821,7 @@ public class PlanetFactoryData
 
 			SetWaitItemString();
 		}
+		haveAddPasteData = false;
 	}
 
 
@@ -1102,18 +1118,8 @@ public class PlanetFactoryData
 		{
 			PreInserterData.Remove(re);
 		}
-		if (preIdMap.Count == 0&&BuildBeltData.Count==0&&WaitItemBuild.Count==0)
+		if (preIdMap.Count == 0&&BuildBeltData.Count==0&&WaitItemBuild.Count==0&&BeltQueue.Count==0)
 		{
-			foreach (var d in PreInserterData)
-			{
-				d.inserter.insertTarget = 0;
-				d.inserter.pickTarget = 0;
-				AddPrebuildData(player, d, out int pid, true);
-				if (pid > 0)
-				{
-					preInserterMap.Add(pid, d);
-				}
-			}
 			PreInserterData.Clear();
 			Check();
 		}
@@ -1212,48 +1218,87 @@ public class PlanetFactoryData
 		return area[count];
 	}
 
-	public static Quaternion GetNewRot(Quaternion q,ERotationType type)
-    {
+	public static Quaternion GetNewRot(Quaternion q, ERotationType type)
+	{
 		if (type == ERotationType.Null)
 			return q;
+
 		var euler = q.eulerAngles;
-        switch (type)
-        {
+		switch (type)
+		{
 			case ERotationType.X:
-				euler.y = 360f - euler.y;
+				if (euler.x > 0.01f)
+					euler.y = (540f - euler.y) % 360f;
+				else
+					euler.y = 360f - euler.y;
+				euler.x = 360f - euler.x;
+				euler.z = 360f - euler.z;
 				break;
 			case ERotationType.Y:
 				euler.y = (euler.y + 180f) % 360f;
 				euler.z = (euler.z + 180f) % 360f;
 				break;
 			case ERotationType.Z:
-				euler.y = (540f - euler.y)%360;
+				if (euler.x > 0.01f)
+					euler.y = 360f - euler.y;
+				else
+					euler.y = (540f - euler.y) % 360f;
+				euler.x = 360f - euler.x;
+				euler.z = 360f - euler.z;
 				break;
 			case ERotationType.XY:
-				euler.y = 360f - euler.y;
 				euler.y = (euler.y + 180f) % 360f;
 				euler.z = (euler.z + 180f) % 360f;
+				if (euler.x > 0.01f)
+					euler.y = (540f - euler.y) % 360f;
+				else
+
+					euler.y = 360f - euler.y;
+				euler.x = 360f - euler.x;
+				euler.z = 360f - euler.z;
 				break;
 			case ERotationType.XZ:
-				euler.y = 360f - euler.y;
-				euler.y = (540f - euler.y) % 360;
+				if (euler.x > 0.01f)
+				{
+					euler.y = 360f - euler.y;
+					euler.y = (540f - euler.y) % 360f;
+				}
+				else
+				{
+					euler.y = (540f - euler.y) % 360f;
+					euler.y = 360f - euler.y;
+				}
+					
 				break;
 			case ERotationType.YZ:
 				euler.y = (euler.y + 180f) % 360f;
 				euler.z = (euler.z + 180f) % 360f;
-				euler.y = (540f - euler.y) % 360;
+				if (euler.x > 0.01f)
+					euler.y = 360f - euler.y;
+				else
+					euler.y = (540f - euler.y) % 360f;
+				euler.x = 360f - euler.x;
+				euler.z = 360f - euler.z;
 				break;
 			case ERotationType.XYZ:
-				euler.y = 360f - euler.y;
+				if (euler.x > 0.01f)
+				{
+					euler.y = 360f - euler.y;
+					euler.y = (540f - euler.y) % 360f;
+				}
+				else
+				{
+					euler.y = (540f - euler.y) % 360f;
+					euler.y = 360f - euler.y;
+				}
 				euler.y = (euler.y + 180f) % 360f;
 				euler.z = (euler.z + 180f) % 360f;
-				euler.y = (540f - euler.y) % 360;
 				break;
 
 		}
 		q.eulerAngles = euler;
 		return q;
-    }
+	}
 
 	public static Vector3 GetNewPos(Vector3 pos, ERotationType type)
     {

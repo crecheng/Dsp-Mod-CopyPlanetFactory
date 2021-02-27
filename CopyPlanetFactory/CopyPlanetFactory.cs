@@ -7,7 +7,7 @@ using BepInEx;
 using HarmonyLib;
 using UnityEngine;
 
-[BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory", "1.4.0")]
+[BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory", "1.4.2")]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
 	void Start()
@@ -85,8 +85,24 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		}
 	}
 
+	static float oldRectW=360f;
 	void mywindowfunction(int windowid)
 	{
+		if (GUI.Button(new Rect(rect.width - 20, 0, 20, 20), "X"))
+		{
+			isShow = !isShow;
+			if (isShow)
+			{
+				rect.width = oldRectW;
+				rect.height = 420;
+			}
+			else
+			{
+				oldRectW = rect.width;
+				rect.width = 30;
+				rect.height = 20;
+			}
+		}
 		if (GUI.Button(new Rect(10, 20, 50, 20), ST.复制))
 		{
 			AreaTrue();
@@ -98,20 +114,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				SelectData = FData;
 			}
 		}
-		if (GUI.Button(new Rect(rect.width - 20, 0, 20, 20), "X"))
-		{
-			isShow = !isShow;
-			if (isShow)
-			{
-				rect.width = 300;
-				rect.height = 420;
-			}
-			else
-			{
-				rect.width = 30;
-				rect.height = 20;
-			}
-		}
+
 
 		if (GUI.Button(new Rect(70, 20, 50, 20), ST.粘贴))
 		{
@@ -159,6 +162,12 @@ public class CopyPlanetFactory : BaseUnityPlugin
 					noItemCount = PastIngData.GetWaitItemDCount;
 					haveItem = string.Empty;
 					haveItemCount = 0;
+				}
+                else
+                {
+					isShowItem = false;
+					noItem = string.Empty;
+					noItemCount = 0;
 				}
 			}
 		}
@@ -262,14 +271,22 @@ public class CopyPlanetFactory : BaseUnityPlugin
 					area[4] = true;
 					area[6] = true;
 				}
-				area[0] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[0], "1:+X,+Y,+Z");
-				area[1] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[1], "2:+X,+Y, -Z");
-				area[2] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[2], "3:+X, -Y,+Z");
-				area[3] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[3], "4:+X, -Y, -Z");
-				area[4] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[4], "5: -X,+Y,+Z");
-				area[5] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[5], "6: -X,+Y, -Z");
-				area[6] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[6], "7: -X, -Y,+Z");
-				area[7] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[7], "8: -X, -Y, -Z");
+				area[0] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[0], $"1:{ST.东},{ST.北},{ST.右}");
+				area[1] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[1], $"2:{ST.东},{ST.北},{ST.左}");
+				area[2] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[2], $"3:{ST.东},{ST.南},{ST.右}");
+				area[3] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[3], $"4:{ST.东},{ST.南},{ST.左}");
+				area[4] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[4], $"5:{ST.西},{ST.北},{ST.右}");
+				area[5] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[5], $"6:{ST.西},{ST.北},{ST.左}");
+				area[6] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[6], $"7:{ST.西},{ST.南},{ST.右}");
+				area[7] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[7], $"8:{ST.西},{ST.南},{ST.左}");
+				//area[0] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[0], "1:+X,+Y,+Z");
+				//area[1] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[1], "2:+X,+Y, -Z");
+				//area[2] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[2], "3:+X, -Y,+Z");
+				//area[3] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[3], "4:+X, -Y, -Z");
+				//area[4] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[4], "5: -X,+Y,+Z");
+				//area[5] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[5], "6: -X,+Y, -Z");
+				//area[6] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[6], "7: -X, -Y,+Z");
+				//area[7] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[7], "8: -X, -Y, -Z");
 			}
 		}
 
@@ -410,12 +427,21 @@ public class CopyPlanetFactory : BaseUnityPlugin
                 Buginfo = "eid:"+ce.id.ToString();
 				Buginfo += "\npos:" + ed.pos;
 				Buginfo += "\nrot:" + ed.rot;
-				Buginfo += "\nrot.eulerAngles:" + ed.rot.eulerAngles;
-                if (ce.inserterId > 0)
+				var eul = ed.rot.eulerAngles;
+				Buginfo += "\nrot.eulerAngles:" + eul;
+				Buginfo += "\nrot.eulerAngles.x:" + eul.x;
+				if (ce.inserterId > 0)
                 {
 					var d = player.factory.factorySystem.inserterPool[ce.inserterId];
 					Buginfo += "\npos2:" + d.pos2;
 					Buginfo += "\nrot2:" + d.rot2;
+				}
+                if (ce.labId > 0)
+                {
+					var d = player.factory.factorySystem.labPool[ce.labId];
+					Buginfo += "\ntimespeed:" + d.timeSpend;
+					Buginfo += "\ntime:" + d.time;
+
 				}
 				//Buginfo += "\ninsertOffset:" + bd.backInputId;
 				//Buginfo += "\noutputId:" + bd.outputId;
