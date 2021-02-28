@@ -29,6 +29,10 @@ public class PlanetFactoryData
 	/// 电线杆数据
 	/// </summary>
 	private List<MyPrebuildData> PowerNodeData;
+	/// <summary>
+	/// 运输站数据
+	/// </summary>
+	private List<MyPrebuildData> StationData;
 	///等待爪子数据
 	/// <summary>
 	/// </summary>
@@ -69,6 +73,10 @@ public class PlanetFactoryData
 	/// 建筑完成的传送带数据，等待连接
 	/// </summary>
 	public List<MyPrebuildData> BuildBeltData;
+	/// <summary>
+	/// 建筑完成的运输站数据，等待连接
+	/// </summary>
+	public List<MyPrebuildData> BuildStationData;
 	/// <summary>
 	/// 建筑完成的爪子数据，等待连接
 	/// </summary>
@@ -125,7 +133,7 @@ public class PlanetFactoryData
 	{
 		get
 		{
-			return AssemblerDate.Count + InserterData.Count + BeltData.Count + PowerData.Count + PowerNodeData.Count;
+			return AssemblerDate.Count + InserterData.Count + BeltData.Count + PowerData.Count + PowerNodeData.Count+StationData.Count;
 		}
 	}
 
@@ -159,7 +167,9 @@ public class PlanetFactoryData
 	{
 		get
 		{
-			return haveInserter || haveBelt || WaitBuildCount > 0;
+			return	preIdMap.Count>0|| preInserterMap.Count>0 ||
+					BeltQueue.Count>0 || WaitBuildCount > 0||
+					BuildStationData.Count>0||BuildBeltData.Count>0;
 		}
 	}
 
@@ -217,8 +227,10 @@ public class PlanetFactoryData
 		AssemblerDate = new List<MyPrebuildData>();
 		InserterData = new List<MyPrebuildData>();
 		BeltData = new List<MyPrebuildData>();
+
 		PowerData = new List<MyPrebuildData>();
 		PowerNodeData = new List<MyPrebuildData>();
+		StationData = new List<MyPrebuildData>();
 		PreInserterData = new List<MyPrebuildData>();
 		eIdMap = new Dictionary<int, int>();
 		posSet = new Dictionary<int, int>();
@@ -226,6 +238,7 @@ public class PlanetFactoryData
 		eidSet = new HashSet<int>();
 		preIdMap = new Dictionary<int, MyPrebuildData>();
 		BuildBeltData = new List<MyPrebuildData>();
+		BuildStationData = new List<MyPrebuildData>();
 		preInserterMap = new Dictionary<int, MyPrebuildData>();
 		BeltEIdMap = new Dictionary<int, int>();
 		ItemNeed = new Dictionary<int, int>();
@@ -251,6 +264,7 @@ public class PlanetFactoryData
 		BeltData.Clear();
 		PowerData.Clear();
 		PowerNodeData.Clear();
+		StationData.Clear();
 		isInitItem = false;
 		itemNeedCount = 0;
 		itemNeedString = string.Empty;
@@ -267,6 +281,7 @@ public class PlanetFactoryData
 		eidSet.Clear();
 		eIdMap.Clear();
 		BuildBeltData.Clear();
+		BuildStationData.Clear();
 		preInserterMap.Clear();
 		BeltEIdMap.Clear();
 		BeltQueue.Clear();
@@ -387,12 +402,58 @@ public class PlanetFactoryData
 							}
 						}
 					}
+
+                    if (preIdMap.Count < 200)
+                    {
+						BeltCount = 0;
+						foreach(var d in preIdMap)
+                        {
+							if (d.Value.isBelt)
+								BeltCount++;
+						}
+                    }
+					BeltQueueDequeue();
 					TryBuildInserter();
 					SetWaitItemString();
 				}
 			}
 		}
 	}
+
+	private void BeltSort()
+    {
+        if (BeltQueue.Count > 0)
+        {
+			List<MyPrebuildData> temp = BeltQueue.ToList();
+			BeltQueue.Clear();
+			temp.Sort((d1, d2) =>
+			{
+				if (d1.Pos.y == d2.Pos.y)
+				{
+					if (d1.Pos.z == d2.Pos.z)
+					{
+						return d1.Pos.x.CompareTo(d2.Pos.x);
+
+					}
+					else
+					{
+						return d1.Pos.z.CompareTo(d2.Pos.z);
+					}
+				}
+				else
+				{
+
+					return d1.Pos.y.CompareTo(d2.Pos.y);
+				}
+			});
+			foreach(var d in temp)
+            {
+				BeltQueue.Enqueue(d);
+            }
+			
+        }
+    }
+
 	/// <summary>
 	/// 导入需求物品数量
 	/// </summary>
@@ -688,11 +749,13 @@ public class PlanetFactoryData
 				bool flag2;
 				int slot;
 				factory.ReadObjectConn(eId, 0, out flag2, out int out1, out slot);
-				int slot2;
-				factory.ReadObjectConn(eId, 1, out flag2, out int in1, out slot2);
-				int num5;
-				factory.ReadObjectConn(eId, 2, out flag2, out int in2, out num5);
-				factory.ReadObjectConn(eId, 3, out flag2, out int in3, out num5);
+				factory.ReadObjectConn(eId, 1, out flag2, out int in1, out slot);
+				factory.ReadObjectConn(eId, 2, out flag2, out int in2, out slot);
+				factory.ReadObjectConn(eId, 3, out flag2, out int in3, out slot);
+				out1 = EIdIsBeltId(out1);
+				in1 = EIdIsBeltId(in1);
+				in2 = EIdIsBeltId(in2);
+				in3 = EIdIsBeltId(in3);
 				var temp = new MyPrebuildData(GetPreDate(ap, ed),ap,out1,in1,in2,in3);
 				//Debug.Log($"{eId},{out1},{in1},{in2},{in3}");
 				temp.oldEId = eId;
@@ -700,10 +763,101 @@ public class PlanetFactoryData
 				AddItemCount(ed.protoId);
 
 			}
+			for(int i = 1; i < factory.transport.stationCursor; i++)
+            {
+				var ap = factory.transport.stationPool[i];
+				if (ap != null)
+				{
+					var eId = ap.entityId;
+					var ed = factory.entityPool[eId];
+					if (ed.protoId == 0)
+						continue;
+					var temp = new MyPrebuildData(GetPreDate(ap, ed), ap);
+					temp.oldEId = eId;
+					temp.isStation = true;
+					StationData.Add(temp);
+					AddItemCount(ed.protoId);
+				}
+			}
 
 		}
 	}
 
+	private int EIdIsBeltId( int eid)
+    {
+
+        if (planetFactory.entityPool[eid].beltId > 0)
+        {
+			return eid;
+        }
+        else
+        {
+			return 0;
+        }
+    }
+
+	private void SetStation(int eid,MyPrebuildData d)
+    {
+        if (CheckData())
+        {
+			var f = GameMain.mainPlayer.factory;
+			int sId = f.entityPool[eid].stationId;
+			var sc = f.transport.stationPool[sId];
+			for(int i = 0; i < sc.storage.Length; i++)
+            {
+				sc.storage[i] = d.storage[i];
+            }
+			d.newEId = eid;
+			BuildStationData.Add(d);
+			TryConnStation();
+        }
+    }
+
+	private void TryConnStation()
+	{
+		List<MyPrebuildData> temp = new List<MyPrebuildData>();
+		foreach (var d in BuildStationData)
+		{
+			bool isMissing = false;
+			int sId = planetFactory.entityPool[d.newEId].stationId;
+			StationComponent sc = planetFactory.transport.stationPool[sId];
+			for (int i = 0; i < sc.slots.Length; i++)
+			{
+				int oldBeltId = d.slots[i].beltId;
+				if (oldBeltId > 0&&sc.slots[i].beltId==0)
+				{
+					if (BeltEIdMap.ContainsKey(oldBeltId))
+					{
+						int NewbeltEId = BeltEIdMap[oldBeltId];
+						int beltId = planetFactory.entityPool[NewbeltEId].beltId;
+						sc.slots[i] = d.slots[i];
+						sc.slots[i].beltId = beltId;
+                        if (sc.slots[i].dir == IODir.Input)
+                        {
+							planetFactory.WriteObjectConn(d.newEId, i, false, NewbeltEId, 0);
+                        }
+						else if(sc.slots[i].dir == IODir.Output)
+                        {
+							planetFactory.WriteObjectConn(d.newEId, i, true, NewbeltEId, 1);
+						}
+					}
+					else
+					{
+						isMissing = true;
+					}
+				}
+			}
+            if (!isMissing)
+            {
+				temp.Add(d);
+            }
+		}
+
+		foreach(var d in temp)
+        {
+			BuildStationData.Remove(d);
+        }
+	}
 
 	public void AddPasteData(Player player1,MyPrebuildData d)
     {
@@ -786,28 +940,19 @@ public class PlanetFactoryData
 			{
 				AddPasteData(player1, d);
 			}
+			//粘贴物流站数据
+			foreach (var d in StationData)
+			{
+				AddPasteData(player1, d);
+			}
+
 			//粘贴传送带数据
 			foreach (var d in BeltData)
 			{
 				if (IsInArea(d.Pos, SelectArea))
 				{
 					var dd = new MyPrebuildData(d);
-					if (BeltCount < 1000)
-					{
-						AddPrebuildData(player, dd, out int pid, true);
-						//Debug.Log(pid);
-						if (pid > 0)
-						{
-							haveBelt = true;
-							dd.preId = pid;
-							preIdMap.Add(pid, dd);
-						}
-						BeltCount++;
-					}
-					else
-					{
-						BeltQueue.Enqueue(dd);
-					}
+					BeltQueue.Enqueue(dd);
 				}
 			}
 
@@ -826,7 +971,8 @@ public class PlanetFactoryData
 			{
 				TryBuildInserter();
 			}
-
+			BeltSort();
+			BeltQueueDequeue();
 			SetWaitItemString();
 		}
 		haveAddPasteData = false;
@@ -840,17 +986,27 @@ public class PlanetFactoryData
     {
 		if (BeltQueue.Count > 0&&playerHaveBeltItem)
 		{
-			BeltCount--;
-			var dd = BeltQueue.Dequeue();
-			AddPrebuildData(player, dd, out int pid, true);
-			//Debug.Log(pid);
-			if (pid > 0)
+			int i = 0;
+			do
 			{
-				BeltCount++;
-				haveBelt = true;
-				dd.preId = pid;
-				preIdMap.Add(pid, dd);
-			}
+				i++;
+				if (BeltQueue.Count > 0 && playerHaveBeltItem)
+				{
+					var dd = BeltQueue.Dequeue();
+					AddPrebuildData(player, dd, out int pid, true);
+					//Debug.Log(pid);
+					if (pid > 0)
+					{
+						BeltCount++;
+						haveBelt = true;
+						dd.preId = pid;
+						preIdMap.Add(pid, dd);
+						BeltCount++;
+					}
+				}
+				if (i > 10000)
+					break;
+			} while (BeltCount < 1000);
 		}
 	}
 
@@ -916,7 +1072,7 @@ public class PlanetFactoryData
 		{
 			Directory.CreateDirectory(path);
 		}
-		string[] s = new string[Count + 7];
+		string[] s = new string[Count +6+7];
 		//文件名
 		s[0] = Name;
 		s[1] = GetItemCountData(true);
@@ -946,10 +1102,16 @@ public class PlanetFactoryData
 		{
 			s[i++] = d.GetBeltData();
 		}
+		s[i++] = StationData.Count.ToString();
+		foreach(var d in StationData)
+        {
+			s[i++] = d.GetStationData();
+        }
 		for (; i < s.Length; i++)
 		{
 			s[i] = string.Empty;
 		}
+
 		string fileName = path + "\\" + Name + ".data";
 		try
 		{
@@ -1017,7 +1179,22 @@ public class PlanetFactoryData
 						{
 							BeltData.Add(new MyPrebuildData(s[i + j], 2));
 						}
-                        if (Count > 0 && ItemNeed.Count == 0)
+						i += c;
+						if (s.Length < i + 1)
+							return;
+						c = int.Parse(s[i]);
+						i++;
+						if (s.Length < i + c )
+							return;
+						for(int j = 0; j < c; j++)
+                        {
+							MyPrebuildData temp = new MyPrebuildData(s[i + j], 3);
+							if (temp.isStation)
+								StationData.Add(temp);
+                        }
+						i += c;
+
+						if (Count > 0 && ItemNeed.Count == 0)
                         {
 							InitItemNeed();
 							Export();
@@ -1078,15 +1255,22 @@ public class PlanetFactoryData
 
 			if (flag)
             {
+				BeltCount--;
 				BuildBeltData.Add(d);
 				BeltEIdMap.Add(d.oldEId, eid);
 				BeltBuild();
+			}
+			if (d.isStation)
+			{
+				SetStation(eid, d);
 			}
 			preIdMap.Remove(preId);
             if (flag)
             {
 				BeltQueueDequeue();
+				TryConnStation();
 			}
+
 			TryBuildInserter();
 		}
 		else if (preIdMap.Count == 0)
@@ -1572,6 +1756,17 @@ public class PlanetFactoryData
 		prebuild.rot2 = Quaternion.identity;
 		return prebuild;
 	}
+	static PrebuildData GetPreDate(StationComponent bc, EntityData ed)
+	{
+		PrebuildData prebuild = default(PrebuildData);
+		prebuild.protoId = (short)ed.protoId;
+		prebuild.modelIndex = (short)ed.modelIndex;
+		prebuild.pos = ed.pos;
+		prebuild.pos2 = VectorLF3.zero;
+		prebuild.rot = ed.rot;
+		prebuild.rot2 = Quaternion.identity;
+		return prebuild;
+	}
 
 	/// <summary>
 	/// 对接口数据进行解析
@@ -1618,6 +1813,9 @@ public class PlanetFactoryData
 		public bool isBelt;
 		public bool isInserter;
 		public bool isNewRot;
+		public bool isStation;
+		public SlotData[] slots;
+		public StationStore[] storage;
 
 		public MyPrebuildData(MyPrebuildData data)
 		{
@@ -1636,6 +1834,14 @@ public class PlanetFactoryData
 			beltIn3 = data.beltIn3;
 			isBelt = data.isBelt;
 			isInserter = data.isInserter;
+			isStation = data.isStation;
+			if (isStation)
+			{
+				slots = new SlotData[data.slots.Length];
+				Array.Copy(data.slots, slots, data.slots.Length);
+				storage = new StationStore[data.storage.Length];
+				Array.Copy(data.storage, storage, data.storage.Length);
+			}
 		}
 		public MyPrebuildData(PrebuildData prebuild, int type)
 		{
@@ -1667,6 +1873,24 @@ public class PlanetFactoryData
 			isBelt = true;
 		}
 
+		public MyPrebuildData(PrebuildData prebuild,StationComponent sc)
+        {
+			pd = prebuild;
+			isStation = true;
+			slots = new SlotData[sc.slots.Length];
+			for(int i = 0; i < slots.Length; i++)
+            {
+				slots[i] = sc.slots[i];
+
+				slots[i].beltId = GameMain.mainPlayer.planetData.factory.cargoTraffic.beltPool[slots[i].beltId].entityId;
+            }
+			storage = new StationStore[sc.storage.Length];
+			for (int i = 0; i <storage.Length; i++)
+			{
+				storage[i] = sc.storage[i];
+				storage[i].count = 0;
+			}
+		}
 		public MyPrebuildData(string data, int type)
 		{
 			Init();
@@ -1732,6 +1956,59 @@ public class PlanetFactoryData
 					beltIn3 = int.Parse(s[13]);
 				}
 			}
+			if (type == 3)
+			{
+				pd = default;
+				string[] s = data.Split(',');
+				if (s.Length > 9)
+				{
+					isStation = true;
+
+					pd.protoId = short.Parse(s[0]);
+					pd.modelIndex = short.Parse(s[1]);
+					pd.pos = new Vector3(float.Parse(s[2]), float.Parse(s[3]), float.Parse(s[4]));
+					pd.rot = new Quaternion(float.Parse(s[5]), float.Parse(s[6]), float.Parse(s[7]), float.Parse(s[8]));
+					oldEId = int.Parse(s[9]);
+					int index = 10;
+
+					int slotLength = int.Parse(s[index++]);
+
+					if (slotLength > 0)
+					{
+						slots = new SlotData[slotLength];
+						for (int i = 0; i < slots.Length; i++)
+						{
+							//Debug.Log($"{s[index]}{s[index + 1]},{s[index + 2]},{s[index + 3]},{s[index + 4]}{s[index + 5]}");
+							index++;
+							slots[i] = default;
+							slots[i].dir = (IODir)int.Parse(s[index++]);
+							slots[i].beltId = int.Parse(s[index++]);
+							slots[i].counter = int.Parse(s[index++]);
+							slots[i].storageIdx = int.Parse(s[index++]);
+							index++;
+						}
+					}
+					//Debug.Log(s[index]);
+					int storageLength = int.Parse(s[index++]);
+					if (storageLength > 0)
+					{
+						storage = new StationStore[storageLength];
+						for (int i = 0; i < storage.Length; i++)
+						{
+							//Debug.Log($"{s[index]},{s[index + 1]},{s[index + 2]},{s[index + 3]},{s[index + 4]},{s[index + 5]},{s[index + 6]},{s[index + 7]}");
+							index++;
+							storage[i] = default;
+							storage[i].itemId = int.Parse(s[index++]);
+							storage[i].max = int.Parse(s[index++]);
+							storage[i].localLogic = (ELogisticStorage)int.Parse(s[index++]);
+							storage[i].localOrder = int.Parse(s[index++]);
+							storage[i].remoteLogic = (ELogisticStorage)int.Parse(s[index++]);
+							storage[i].remoteOrder = int.Parse(s[index++]);
+							index++;
+						}
+					}
+				}
+			}
 			//}
 			//catch (Exception e)
 			//{
@@ -1758,6 +2035,9 @@ public class PlanetFactoryData
 			oldEId = 0;
 			newEId = 0;
 			isNewRot = false;
+			isStation = false;
+			slots = null;
+			storage = null;
 		}
 		public int ProtoId
 		{
@@ -1798,6 +2078,25 @@ public class PlanetFactoryData
 		{
 			string s = $"{ pd.protoId},{pd.modelIndex},{pd.pos.x},{pd.pos.y},{pd.pos.z},{pd.rot.x},{pd.rot.y},{pd.rot.z},{pd.rot.w},{oldEId}";
 			s += $",{beltOut},{beltIn1},{beltIn2},{beltIn3}";
+			return s;
+		}
+
+		public string GetStationData()
+        {
+			string s= $"{ pd.protoId},{pd.modelIndex},{pd.pos.x},{pd.pos.y},{pd.pos.z},{pd.rot.x},{pd.rot.y},{pd.rot.z},{pd.rot.w},{oldEId}";
+			s += "," + slots.Length;
+			for(int i = 0; i < slots.Length; i++)
+            {
+				var temp = slots[i];
+				s += $",[,{(int)temp.dir},{temp.beltId},{temp.counter},{temp.storageIdx},]";
+            }
+			s += "," + storage.Length;
+			
+			for (int i = 0; i < storage.Length; i++)
+			{
+				var temp = storage[i];
+				s += $",[,{temp.itemId},{temp.max},{(int)temp.localLogic},{temp.localOrder},{(int)temp.remoteLogic},{temp.remoteOrder},]";
+			}
 			return s;
 		}
 		public int posSetNum

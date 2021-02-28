@@ -10,7 +10,7 @@ using UnityEngine;
 [BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory",CopyPlanetFactory.Version )]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
-	public const string Version = "1.4.5";
+	public const string Version = "1.5.0";
 	void Start()
 	{
 		Harmony.CreateAndPatchAll(typeof(CopyPlanetFactory), null);
@@ -53,6 +53,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			PList.Add(data);
 		}
 	}
+
 
 	void OnGUI()
 	{
@@ -429,49 +430,49 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				int inid = ce.beltId;
 				var ed = player.factory.entityPool[ce.id];
 				var bd = player.factory.cargoTraffic.beltPool[inid];
+				var sid = ce.stationId;
                 Buginfo = "eid:"+ce.id.ToString();
 				Buginfo += "\npos:" + ed.pos;
 				Buginfo += "\nrot:" + ed.rot;
-				var eul = ed.rot.eulerAngles;
-				Buginfo += "\nrot.eulerAngles:" + eul;
-				Buginfo += "\nrot.eulerAngles.x:" + eul.x;
-				if (ce.inserterId > 0)
-                {
-					var d = player.factory.factorySystem.inserterPool[ce.inserterId];
-					Buginfo += "\npos2:" + d.pos2;
-					Buginfo += "\nrot2:" + d.rot2;
+				//var eul = ed.rot.eulerAngles;
+				//Buginfo += "\nrot.eulerAngles:" + eul;
+				//Buginfo += "\nrot.eulerAngles.x:" + eul.x;
+				//if (ce.inserterId > 0)
+				//{
+				//	var d = player.factory.factorySystem.inserterPool[ce.inserterId];
+				//	Buginfo += "\npos2:" + d.pos2;
+				//	Buginfo += "\nrot2:" + d.rot2;
+				//}
+				//if (ce.labId > 0)
+				//{
+				//	var d = player.factory.factorySystem.labPool[ce.labId];
+				//	Buginfo += "\ntimespeed:" + d.timeSpend;
+				//	Buginfo += "\ntime:" + d.time;
+				//
+				//}
+				Buginfo += "\nbId:" + ce.beltId;
+				Buginfo += "\ncoon:";
+				if (ce.id >0)
+				{
+					for(int i = 0; i < 16; i++)
+				    {
+						int conn = player.planetData.factory.entityConnPool[ce.id * 16 + i];
+						player.planetData.factory.ReadObjectConn(ce.id, i, out bool isO, out int other, out int slot);
+						Buginfo +=i+":"+ conn + "," + isO + "," + other + "," + slot+"\n";
+				    }
 				}
-                if (ce.labId > 0)
+                if (sid > 0)
                 {
-					var d = player.factory.factorySystem.labPool[ce.labId];
-					Buginfo += "\ntimespeed:" + d.timeSpend;
-					Buginfo += "\ntime:" + d.time;
+					Buginfo += "\nSlot:";
+					var sc = player.planetData.factory.transport.stationPool[sid];
+					for(int i = 0; i < sc.slots.Length; i++)
+                    {
+						Buginfo += sc.slots[i].beltId+"|";
+						int temp= player.planetData.factory.cargoTraffic.beltPool[sc.slots[i].beltId].entityId;
+						Buginfo += temp + ",";
 
-				}
-				//Buginfo += "\ninsertOffset:" + bd.backInputId;
-				//Buginfo += "\noutputId:" + bd.outputId;
-				//Buginfo += "\nleftInputId:" + bd.leftInputId;
-				//Buginfo += "\nrightInputId:" + bd.rightInputId;
-				//Buginfo += "\nsegIndex:" + bd.segIndex;
-				//Buginfo += "\nsegLength:" + bd.segLength;
-				//Buginfo += "\nsegPathId:" + bd.segPathId;
-				//Buginfo += "\nsegPivotOffset:" + bd.segPivotOffset;
-				//Buginfo += "\ncoon:";
-				//if (ce.id >0)
-				//{
-				//	for(int i = 0; i < 16; i++)
-				//    {
-				//		int conn = player.planetData.factory.entityConnPool[ce.id * 16 + i];
-				//		player.planetData.factory.ReadObjectConn(ce.id, i, out bool isO, out int other, out int slot);
-				//		Buginfo +=i+":"+ conn + "," + isO + "," + other + "," + slot+"\n";
-				//    }
-				//}
-				//if (PastIngData != null)
-				//{
-				//	Buginfo += "\n"+PastIngData.working;
-				//	Buginfo += "\n"+PastIngData.preIdMap.Count;
-				//	Buginfo += "\n"+PastIngData.BuildBeltData.Count;
-				//}
+					}
+                }
 
 			}
 
@@ -488,8 +489,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			PastIngData = null;
         }
     }
-
-
 
 
 	private static bool isShow = true;
