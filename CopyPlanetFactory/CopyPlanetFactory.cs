@@ -10,7 +10,8 @@ using UnityEngine;
 [BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory",CopyPlanetFactory.Version )]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
-	public const string Version = "1.5.0";
+	
+	public const string Version = "1.6.1";
 	void Start()
 	{
 		Harmony.CreateAndPatchAll(typeof(CopyPlanetFactory), null);
@@ -37,27 +38,26 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				var f = Directory.GetFiles(path);
 				foreach (var d in f)
 				{
-					PlanetFactoryData data = new PlanetFactoryData();
+					FactoryData data = new FactoryData();
 					filename = d.Split('\\').Last() ;
 					data.Import(d);
-					PList.Add(data);
+					DataList.Add(data);
 				}
-				totalPage = PList.Count / 10 + 1;
+				totalPage = DataList.Count / 10 + 1;
 			}
 		}catch(Exception e)
         {
 			Debug.LogError("readFileError");
 			Debug.LogError(e.Message);
-			PlanetFactoryData data = new PlanetFactoryData();
+			FactoryData data = new FactoryData();
 			data.Name = filename + ST.导入错误+"！";
-			PList.Add(data);
+			DataList.Add(data);
 		}
 	}
 
 
 	void OnGUI()
 	{
-
 		rect = GUI.Window(1935598199, rect, mywindowfunction, "星球蓝图"+Version);
 
 		//GUI.Label(new Rect(100, 100, 300, 700), Buginfo);
@@ -75,7 +75,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				info1 = (confirmStop ? $"【{ST.确认强制停止}?】\n" : "") +
 					(PastIngData.playerHaveBeltItem?"": $"【{ST.缺少传送带}!!!】\n") +
 					(PastIngData.playerHaveInserterItem ? "" : $"【{ST.缺少爪子}!!!】\n") +
-					$"【{PastIngData.Name}】\n" +
+					$"【{PastIngData.Data.Name}】\n" +
 					$"{ST.正在建造}\n{PastIngData.preIdMap.Count}\n" +
 					$"{ST.建造完成}\n{PastIngData.eIdMapCount}\n" +
 					$"{ST.等待爪子}\n{PastIngData.PreInserterDateCount}\n" +
@@ -94,7 +94,8 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	static float oldRectW=360f;
 	void mywindowfunction(int windowid)
 	{
-		if (GUI.Button(new Rect(rect.width - 20, 0, 20, 20), (isShow?"X":"O")))
+
+		if (GUI.Button(new Rect(rect.width - 20, 0, 20, 20), (isShow ? "X" : "O")))
 		{
 			isShow = !isShow;
 			if (isShow)
@@ -115,11 +116,12 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			var factory = GetFactory();
 			if (factory != null)
 			{
-				FData.CopyPlanetFactoryDate(factory);
+				FData.CopyData(factory);
 				rect.width = 460f;
-				SelectData = FData;
+				SelectData = FData.Data;
 			}
 		}
+
 
 
 		if (GUI.Button(new Rect(70, 20, 50, 20), ST.粘贴))
@@ -127,7 +129,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			var player = GetPlayer();
 			if (player != null && PastIngData == null)
 			{
-				FData.PastePlanetFactoryDate(player,area);
+				FData.PasteDate(player, area);
 				buildS = FData.buildS;
 				buildF = FData.buildF;
 				buildF1 = FData.buildF1;
@@ -139,9 +141,14 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		{
 			FData.ClearData();
 			SelectData = null;
+			noItem = string.Empty;
 			rect.width = RECT_WEIDTH;
+
 			AreaFalse();
 		}
+
+
+
 
 		if (GUI.Button(new Rect(185, 20, 100, 20), ST.强制停止))
 		{
@@ -152,6 +159,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			else
 			{
 				PastIngData = null;
+				noItem = string.Empty;
 				confirmStop = false;
 				info1 = "";
 			}
@@ -169,14 +177,16 @@ public class CopyPlanetFactory : BaseUnityPlugin
 					haveItem = string.Empty;
 					haveItemCount = 0;
 				}
-                else
-                {
+				else
+				{
 					isShowItem = false;
 					noItem = string.Empty;
 					noItemCount = 0;
 				}
 			}
 		}
+
+
 
 		if (SelectData != null)
 		{
@@ -217,12 +227,12 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			if (GUI.Button(new Rect(290, 200, buttonW, buttonH), ST.区域选择))
 			{
 				isShowMore = !isShowMore;
-                if (isShowMore)
-                {
+				if (isShowMore)
+				{
 					rect.width = 560f;
-                }
-                else
-                {
+				}
+				else
+				{
 					rect.width = 460f;
 				}
 			}
@@ -296,28 +306,29 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			}
 		}
 
-		FData.Name = GUI.TextArea(new Rect(10, 45, 100, 20), FData.Name);
-		FData.Name.Replace("\\", "").Replace("/", "").Replace("?", "").Replace("|", "").Replace("<", "").Replace(">", "").Replace(":", "").Replace("*", "").Replace("\"", "");
+		FData.Data.Name = GUI.TextArea(new Rect(10, 45, 100, 20), FData.Data.Name);
+		FData.Data.Name.Replace("\\", "").Replace("/", "").Replace("?", "").Replace("|", "").Replace("<", "").Replace(">", "").Replace(":", "").Replace("*", "").Replace("\"", "");
 		if (GUI.Button(new Rect(130, 45, 50, 20), ST.保存))
 		{
-			if (FData.Count > 0 && FData.Name.Length > 0)
+			if (FData.Data.Count > 0 && FData.Data.Name.Length > 0)
 			{
-				FData.Export();
-				PList.Add(FData);
+				FData.Data.Export();
+				DataList.Add(FData.Data);
 				info1 = "保存在BepInEx\\config\\PlanetFactoryData";
-				FData = new PlanetFactoryData();
+				FData.NewData();
 
 			}
 		}
+
 		GUI.Label(new Rect(10, 70, 200, 100), info);
 		GUI.Label(new Rect(190, 70, 125, 400), info1);
 		int j = 0;
-		for (int i = atPage * 10; i < Math.Min(PList.Count, (atPage + 1) * 10); i++)
+		for (int i = atPage * 10; i < Math.Min(DataList.Count, (atPage + 1) * 10); i++)
 		{
-			var d = PList[i];
+			var d = DataList[i];
 			if (GUI.Button(new Rect(10, 155 + j * 23, 120, 20), d.Name))
 			{
-				if (PlanetFactoryData.CheckData())
+				if (FactoryTask.CheckData())
 				{
 					d.CheckItem(GameMain.mainPlayer, out haveItem, out haveItemCount, out noItem, out noItemCount);
 					isShowItem = true;
@@ -331,6 +342,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			}
 			j++;
 		}
+
 		for (int i = 0; i < totalPage; i++)
 		{
 			if (GUI.Button(new Rect(10 + i * 22, 390, 20, 20), "" + (i + 1)))
@@ -342,18 +354,20 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		GUI.DragWindow(new Rect(0, 0, 10000, 10000));
 	}
 
-	private void PasteData(PlanetFactoryData data,ERotationType rotationType=ERotationType.Null)
-    {
+	private void PasteData(FactoryData data, ERotationType rotationType = ERotationType.Null)
+	{
 		var player = GetPlayer();
 		if (player != null && PastIngData == null)
 		{
-			data.PastePlanetFactoryDate(player,area, rotationType);
-			buildS = data.buildS;
-			buildF = data.buildF;
-			buildF1 = data.buildF1;
-			buildF2 = data.buildF2;
+			FactoryTask task = new FactoryTask(data);
+
+			task.PasteDate(player, area, rotationType);
+			buildS = task.buildS;
+			buildF = task.buildF;
+			buildF1 = task.buildF1;
+			buildF2 = task.buildF2;
 			info = data.Name + ST.粘贴 + ST.成功;
-			PastIngData = data;
+			PastIngData = task;
 			if (PastIngData.WaitBuildCount > 0)
 			{
 				isShowItem = true;
@@ -415,7 +429,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			PlanetData planetData = __instance.mainPlayer.planetData;
 			if (planetData.factory != null)
 			{
-				int count = FData.Count;
+				int count = FData.Data.Count;
 				info = $"{ST.复制建筑}：{count}\n{ST.成功}：{buildS} {ST.重叠}：{buildF1}" +
 					(PastIngData != null?$"\n【-{ST.正在复制}-】\n":"")+
 					$"\n暂时忽略地形碰撞检测\n";
@@ -493,11 +507,9 @@ public class CopyPlanetFactory : BaseUnityPlugin
 
 	private static bool isShow = true;
 
-
-
 	static bool CheckData()
     {
-		return PlanetFactoryData.CheckData();
+		return FactoryTask.CheckData();
 	}
 
 	static Player GetPlayer()
@@ -517,7 +529,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		}
 		return null;
 	}
-	public static PlanetFactoryData PastIngData = null;
+	public static FactoryTask PastIngData = null;
 	public static int buildS = 0;
 	public static int buildF = 0;
 	public static int buildF1 = 0;
@@ -528,8 +540,8 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	private static int atPage = 0;
 	private static string info1 = string.Empty;
 	private static string info = string.Empty;
-	private static PlanetFactoryData FData = new PlanetFactoryData();
-	private static List<PlanetFactoryData> PList = new List<PlanetFactoryData>();
+	private static FactoryTask FData = new FactoryTask();
+	private static List<FactoryData> DataList = new List<FactoryData>();
 	private static string Buginfo = string.Empty;
 	private const float RECT_WEIDTH = 300f;
 	private static Rect rect = new Rect(330f, 30f, RECT_WEIDTH, 420f);
@@ -538,7 +550,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	private static int haveItemCount = 0;
 	private static int noItemCount = 0;
 	private static bool[] area = new bool[8];
-	private static PlanetFactoryData SelectData = null;
+	private static FactoryData SelectData = null;
 	private static string haveItem = string.Empty;
 	private static string noItem = string.Empty;
 	private static bool isShowMore = false;
