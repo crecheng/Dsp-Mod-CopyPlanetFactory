@@ -575,7 +575,7 @@ public class FactoryTask
 				i++;
 				if (belts.Count > 0 && playerHaveBeltItem)
 				{
-					var dd = belts.Dequeue();
+					var dd = belts.Peek();
 					AddPrebuildData(player, dd, out int pid, true);
 					//Debug.Log(pid);
 					if (pid > 0)
@@ -585,6 +585,7 @@ public class FactoryTask
 						dd.preId = pid;
 						preIdMap.Add(pid, dd);
 						BeltCount++;
+						belts.Dequeue();
 					}
 				}
 				if (i > 10000)
@@ -656,6 +657,10 @@ public class FactoryTask
             {
 				BeltQueueDequeue();
 				TryConnStation();
+			}
+            if (preIdMap.Count < 800)
+            {
+				BeltQueueDequeue();
 			}
 
 			TryBuildInserter();

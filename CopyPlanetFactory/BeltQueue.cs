@@ -47,6 +47,11 @@ public class BeltQueue
         return belts.Dequeue();
     }
 
+    public Belt Peek()
+    {
+        return belts.Peek();
+    }
+
     public void Sort()
     {
 

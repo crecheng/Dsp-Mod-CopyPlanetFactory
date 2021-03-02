@@ -11,7 +11,7 @@ using UnityEngine;
 public class CopyPlanetFactory : BaseUnityPlugin
 {
 	
-	public const string Version = "1.6.1";
+	public const string Version = "1.6.5";
 	void Start()
 	{
 		Harmony.CreateAndPatchAll(typeof(CopyPlanetFactory), null);
@@ -21,6 +21,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		haveStyle.normal.textColor = new Color(255f, 255f, 255f);
 		noStyle.normal.textColor = new Color(255f/256f, 77f / 256f, 77f / 256f);
 	}
+
 
 	static void readFile()
     {
@@ -55,11 +56,35 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		}
 	}
 
-
+	static int ImgX = 0;
+	static int ImgY = 0;
 	void OnGUI()
 	{
-		rect = GUI.Window(1935598199, rect, mywindowfunction, "星球蓝图"+Version);
+		rect = GUI.Window(1935598199, rect, mywindowfunction, "星球蓝图" + Version);
+		if (SelectData != null && isShowImg)
+		{
+			Rect ImgRect = new Rect(400, 100, 801, 400);
+			ImgX = (int)GUI.VerticalSlider(new Rect(1205, 200, 20, 200), ImgX, 0, 180);
+			ImgY = (int)GUI.HorizontalSlider(new Rect(700, 505, 200, 20), ImgY, 0, 180);
+			GUI.Label(ImgRect, SelectData.GetImg(ImgX, ImgY));
+			if (ImgX < 2 && ImgY < 2)
+			{
+				float by = ImgRect.y + ImgRect.height - 20;
+				GUI.Label(new Rect(ImgRect.x, ImgRect.y + 3, 60, 20), ST.东 + ST.北 + ST.左, noStyle);
+				GUI.Label(new Rect(ImgRect.x, by, 60, 20), ST.东 + ST.南 + ST.左, noStyle);
+				GUI.Label(new Rect(ImgRect.x + ImgRect.width / 2 - 60, ImgRect.y + 3, 60, 20), ST.东 + ST.北 + ST.右, noStyle);
+				GUI.Label(new Rect(ImgRect.x + ImgRect.width / 2 - 60, by, 60, 20), ST.东 + ST.南 + ST.右, noStyle);
+				GUI.Label(new Rect(ImgRect.x + ImgRect.width / 2 + 1, ImgRect.y + 3, 60, 20), ST.西 + ST.北 + ST.右, noStyle);
+				GUI.Label(new Rect(ImgRect.x + ImgRect.width / 2 + 1, by, 60, 20), ST.西 + ST.南 + ST.右, noStyle);
+				GUI.Label(new Rect(ImgRect.x + ImgRect.width - 60, ImgRect.y + 3, 60, 20), ST.西 + ST.北 + ST.左, noStyle);
+				GUI.Label(new Rect(ImgRect.x + ImgRect.width - 60, by, 60, 20), ST.西 + ST.南 + ST.左, noStyle);
+			}
+			if (GUI.Button(new Rect(ImgRect.x + ImgRect.width, ImgRect.y + 3, 20, 20), "X"))
+			{
+				isShowImg = false;
+			}
 
+		}
 		//GUI.Label(new Rect(100, 100, 300, 700), Buginfo);
 		if (isShow)
 		{
@@ -73,7 +98,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			if (PastIngData != null)
 			{
 				info1 = (confirmStop ? $"【{ST.确认强制停止}?】\n" : "") +
-					(PastIngData.playerHaveBeltItem?"": $"【{ST.缺少传送带}!!!】\n") +
+					(PastIngData.playerHaveBeltItem ? "" : $"【{ST.缺少传送带}!!!】\n") +
 					(PastIngData.playerHaveInserterItem ? "" : $"【{ST.缺少爪子}!!!】\n") +
 					$"【{PastIngData.Data.Name}】\n" +
 					$"{ST.正在建造}\n{PastIngData.preIdMap.Count}\n" +
@@ -91,6 +116,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		}
 	}
 
+	static bool isShowImg = false;
 	static float oldRectW=360f;
 	void mywindowfunction(int windowid)
 	{
@@ -117,6 +143,8 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			if (factory != null)
 			{
 				FData.CopyData(factory);
+				StartCoroutine(FData.Data.CheckBelt(0.1f));
+				StartCoroutine(FData.Data.CheckBelt(0.2f));
 				rect.width = 460f;
 				SelectData = FData.Data;
 			}
@@ -339,6 +367,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				SelectData = d;
 				AreaTrue();
 				rect.width = 460f;
+				isShowImg = true;
 			}
 			j++;
 		}
