@@ -20,6 +20,82 @@ public class ST
             }
         }
     }
+
+    public static string 移除
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "移除";
+            }
+            else
+            {
+                return "remove";
+            }
+        }
+    }
+
+    public static string 背包不足
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "背包不足!!!";
+            }
+            else
+            {
+                return "Bag Full!!!";
+            }
+        }
+    }
+
+    public static string 当前星球
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "当前星球";
+            }
+            else
+            {
+                return "LocalPlanet";
+            }
+        }
+    }
+
+    public static string 全部
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "全部";
+            }
+            else
+            {
+                return "All";
+            }
+        }
+    }
+
+    public static string 建筑
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "建筑";
+            }
+            else
+            {
+                return "building";
+            }
+        }
+    }
+
     public static string 粘贴
     {
         get

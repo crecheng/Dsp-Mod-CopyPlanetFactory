@@ -58,9 +58,7 @@ public class FactoryData
 
 	public Dictionary<int, Belt> CheckBeltData;
 
-	private Texture2D Img;
-	private float x = -1;
-	private float y = -1;
+	public PlanetFactoryImg Img;
 
 	public bool isInitItem;
 	public PlanetFactory factory;
@@ -76,78 +74,11 @@ public class FactoryData
 		}
 	}
 
-	public Vector3 GetImgPos(Vector3 pos)
+	public Texture2D GetImg(int x, int y)
     {
-		Quaternion rot1 = new Quaternion();
-		rot1.eulerAngles = new Vector3(0, y, 0);
-		pos = rot1 * pos;
-		Quaternion rot2 = new Quaternion();
-		rot2.eulerAngles = new Vector3(0, 0, x);
-		pos = rot2 * pos;
-		return pos;
-	}
-
-	public Texture2D GetImg(int x,int y)
-	{
-		if (this.x==x&&this.y==y)
-			return Img;
-		this.x = x;
-		this.y = y;
-		
-		Img = new Texture2D(801, 400);
-		for (int i = 1; i <=400;i++)
-        {
-			Img.SetPixel(401, i, Color.black);
-        }
-		foreach (var d in AssemblerDate)
-		{
-			SetBuildColor(GetImgPos(d.Pos), new Color(232f / 256f, 253 / 256f, 77 / 256f), -1, 1, -1, 1);
-		}
-		foreach (var d in PowerData)
-		{
-			SetBuildColor(GetImgPos(d.Pos), new Color(108f / 256f, 2f / 256f, 208f / 256f), -1, 1, -1, 1);
-		}
-		foreach (var d in GammData)
-		{
-			SetBuildColor(GetImgPos(d.Pos), new Color(108f / 256f, 2f / 256f, 208f / 256f), -2, 2, -2, 2);
-		}
-		foreach (var d in BeltData)
-		{
-			SetBuildColor(GetImgPos(d.Pos), new Color(24f / 256f, 194 / 256f, 254 / 256f), 0, 1);
-		}
-		foreach (var d in StationData)
-		{
-			SetBuildColor(GetImgPos(d.Pos), new Color(218f / 256f, 83f / 256f, 2f / 256f), -3, 3, -3, 3);
-		}
-		foreach(var d in LabData)
-        {
-			SetBuildColor(GetImgPos(d.Pos), Color.white, -2, 2, -2, 2);
-		}
-		Img.Apply();
-		return Img;
-	}
-
-	void SetBuildColor(Vector3 pos, Color c, int left=0, int right=0, int top=0, int bottom=0)
-    {
-		int x = (int)(pos.z + 200); ;
-		if (pos.x < 0)
-		{
-			x = -x + 801;
-		}
-		int y = (int)(pos.y + 200);
-		FullRect(x, y,c, left, right, top, bottom);
-	}
-
-	void FullRect(int x,int y,Color c,int left,int right,int top,int bottom)
-    {
-		for(int i = left; i <= right; i++)
-        {
-			for(int j = top; j <= bottom; j++)
-            {
-				Img.SetPixel(x + i, y + j, c);
-            }
-        }
+		return Img.GetImg(x, y, this);
     }
+
 
 	void Init()
     {
@@ -165,6 +96,7 @@ public class FactoryData
 		CheckBeltData = new Dictionary<int, Belt>();
 		Name = string.Empty;
 		GammData = new List<Gamm>();
+		Img = new PlanetFactoryImg();
 	}
 	public FactoryData()
     {
@@ -598,6 +530,7 @@ public class FactoryData
 			int eid = d.Key;
 			var id = factory.entityPool[eid].beltId;
 			var data = factory.cargoTraffic.beltPool[id];
+			var outBelt = factory.cargoTraffic.beltPool[data.outputId];
 			bool flag2;
 			int slot;
 			factory.ReadObjectConn(eid, 0, out flag2, out int out1, out slot);
@@ -615,7 +548,11 @@ public class FactoryData
 				d.Value.beltIn1 = in1;
 				d.Value.beltIn2 = in2;
 				d.Value.beltIn3 = in3;
-
+			}
+			else if (outBelt.entityId > 0)
+            {
+				temp.Add(d.Key);
+				d.Value.beltOut = out1;
 			}
 		}
 		foreach(int i in temp)

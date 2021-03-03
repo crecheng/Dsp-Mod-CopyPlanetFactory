@@ -11,7 +11,7 @@ using UnityEngine;
 public class CopyPlanetFactory : BaseUnityPlugin
 {
 	
-	public const string Version = "1.6.6";
+	public const string Version = "1.6.7";
 	void Start()
 	{
 		Harmony.CreateAndPatchAll(typeof(CopyPlanetFactory), null);
@@ -55,14 +55,50 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		}
 	}
 
+	void RemoverAllBuilding()
+    {
+        if (CheckData())
+        {
+			var player = GameMain.mainPlayer;
+			var factory = player.planetData.factory;
+			for(int i = 0; i < factory.entityCursor; i++)
+            {
+                if (factory.entityPool[i].protoId > 0)
+				{
+					try
+					{
+						if (player.package.isFull)
+						{
+							UIRealtimeTip.Popup(ST.背包不足);
+							break;
+						}
+						ItemProto itemProto = LDB.items.Select((int)factory.entityPool[i].protoId);
+						int itemId = (itemProto == null) ? 0 : itemProto.ID;
+						factory.DestructFinally(player, i, ref itemId);
+						player.package.AddItemStacked(itemId, 1);
+						UIItemup.Up(itemId, 1);
+					}catch(Exception e)
+                    {
+						Debug.LogError(e.Message);
+						Debug.LogError(e.StackTrace);
+                    }
+				}
+            }
+			
+        }
+    }
+
+
+
 	static int ImgX = 0;
 	static int ImgY = 0;
 	void OnGUI()
 	{
 		rect = GUI.Window(1935598199, rect, mywindowfunction, "星球蓝图" + Version);
-		if (SelectData != null && isShowImg)
+		if (isShowImg)
 		{
 			DataImgLabel();
+
 		}
 		//GUI.Label(new Rect(100, 100, 300, 700), Buginfo);
 		if (isShow)
@@ -73,6 +109,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				GUI.Label(new Rect(rect.x - 250, rect.y + haveItemCount * 16, 250, haveItemCount * 16), noItem, noStyle);
 				if (GUI.Button(new Rect(rect.x - 20, rect.y, 20, 20), "X"))
 					isShowItem = false;
+
 			}
 			if (PastIngData != null)
 			{
@@ -99,7 +136,11 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		Rect ImgRect = new Rect(400, 100, 801, 400);
 		ImgX = (int)GUI.VerticalSlider(new Rect(1205, 200, 20, 200), ImgX, 0, 180);
 		ImgY = (int)GUI.HorizontalSlider(new Rect(700, 505, 200, 20), ImgY, 0, 180);
-		GUI.Label(ImgRect, SelectData.GetImg(ImgX, ImgY));
+        if (SelectData != null) 
+			GUI.Label(ImgRect, SelectData.GetImg(ImgX, ImgY));
+		else 
+			GUI.Label(ImgRect, localImg.GetImg(ImgX, ImgY,GetFactory()));
+
 		if (ImgX < 2 && ImgY < 2)
 		{
 			float by = ImgRect.y + ImgRect.height - 20;
@@ -116,10 +157,19 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		{
 			isShowImg = false;
 		}
+
+		if (GetFactory() != null)
+		{
+			if (GUI.Button(new Rect(ImgRect.x + ImgRect.width + 40, ImgRect.y + ImgRect.height / 2, 120, 40), $"{ST.移除} {ST.当前星球}\n{ST.全部} {ST.建筑}"))
+			{
+				RemoverAllBuilding();
+			}
+		}
 	}
 
 	static bool isShowImg = false;
 	static float oldRectW=360f;
+	static PlanetFactoryImg localImg = new PlanetFactoryImg();
 	void mywindowfunction(int windowid)
 	{
 
@@ -145,8 +195,10 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			if (factory != null)
 			{
 				FData.CopyData(factory);
-				StartCoroutine(FData.Data.CheckBelt(0.1f));
-				StartCoroutine(FData.Data.CheckBelt(0.2f));
+				for (int i = 0; i < 30; i++)
+				{
+					StartCoroutine(FData.Data.CheckBelt((float)(0.1 + 0.1 * i)));
+				}
 				rect.width = 460f;
 				SelectData = FData.Data;
 			}
@@ -349,6 +401,11 @@ public class CopyPlanetFactory : BaseUnityPlugin
 
 			}
 		}
+		if(GUI.Button(new Rect(120, 70, 70, 20), ST.当前星球))
+        {
+			SelectData = null;
+			isShowImg = true;
+        }
 
 		GUI.Label(new Rect(10, 70, 200, 100), info);
 		GUI.Label(new Rect(190, 70, 125, 400), info1);
@@ -463,6 +520,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				int count = FData.Data.Count;
 				info = $"{ST.复制建筑}：{count}\n{ST.成功}：{buildS} {ST.重叠}：{buildF1}" +
 					(PastIngData != null?$"\n【-{ST.正在复制}-】\n":"")+
+					(FData.Data.CheckBeltData.Count>0?$"\n无出货传送带{FData.Data.CheckBeltData.Count}":"")+
 					$"\n暂时忽略地形碰撞检测\n";
 			}
 		}

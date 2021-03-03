@@ -71,6 +71,7 @@
     <Compile Include="Lab.cs" />
     <Compile Include="MyPreBuildData.cs" />
     <Compile Include="FactoryTask.cs" />
+    <Compile Include="PlanetFactoryImg.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ST.cs" />
     <Compile Include="Station.cs" />
