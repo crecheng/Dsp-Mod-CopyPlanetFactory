@@ -25,7 +25,7 @@ public class Belt : MyPreBuildData
 	}
 
 	public Belt(string data)
-    {
+	{
 		pd = default;
 		isBelt = true;
 		string[] s = data.Split(',');
@@ -43,20 +43,62 @@ public class Belt : MyPreBuildData
 		}
 	}
 
-    public override string GetData()
-    {
+	public override string GetData()
+	{
 		string s = $"{ pd.protoId},{pd.modelIndex},{pd.pos.x},{pd.pos.y},{pd.pos.z},{pd.rot.x},{pd.rot.y},{pd.rot.z},{pd.rot.w},{oldEId}";
 		s += $",{beltOut},{beltIn1},{beltIn2},{beltIn3}";
 		return s;
 	}
 
-    public override MyPreBuildData GetCopy()
-    {
-        return new Belt(pd, belt, beltOut, beltIn1, beltIn2, beltIn3)
+	public override bool ConnBelt(PlanetFactory factory, Dictionary<int, int> BeltEIdMap)
+	{
+		if (beltOut == 0 || BeltEIdMap.ContainsKey(beltOut))
 		{
-			newEId=this.newEId,
-			oldEId=this.oldEId
+			if (beltIn1 == 0 || BeltEIdMap.ContainsKey(beltIn1))
+				if (beltIn2 == 0 || BeltEIdMap.ContainsKey(beltIn2))
+					if (beltIn3 == 0 || BeltEIdMap.ContainsKey(beltIn3))
+					{
+						int out1 = 0;
+						int in1 = 0;
+						int in2 = 0;
+						int in3 = 0;
+						if (BeltEIdMap.ContainsKey(beltOut))
+						{
+							int other = 0;
+							other = BeltEIdMap[beltOut];
+							out1 = factory.entityPool[other].beltId;
+							int otherSlot = Common.GetEmptyConn(factory, other, 1);
+							if (otherSlot > 0)
+								factory.WriteObjectConn(newEId, 0, true, other, otherSlot);
+						}
+						if (BeltEIdMap.ContainsKey(beltIn1))
+						{
+							in1 = factory.entityPool[BeltEIdMap[beltIn1]].beltId;
+						}
+						if (BeltEIdMap.ContainsKey(beltIn2))
+						{
+							in2 = factory.entityPool[BeltEIdMap[beltIn2]].beltId;
+						}
+						if (BeltEIdMap.ContainsKey(beltIn3))
+						{
+							in3 = factory.entityPool[BeltEIdMap[beltIn3]].beltId;
+						}
+						int beltId = factory.entityPool[newEId].beltId;
+						factory.cargoTraffic.AlterBeltConnections(beltId, out1, in1, in2, in3);
+						return true;
+					}
+		}
+		return false;
+	}
+
+
+	public override MyPreBuildData GetCopy()
+	{
+		return new Belt(pd, belt, beltOut, beltIn1, beltIn2, beltIn3)
+		{
+			newEId = this.newEId,
+			oldEId = this.oldEId
 		};
-    }
+	}
 }
 

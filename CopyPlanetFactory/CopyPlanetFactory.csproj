@@ -62,9 +62,11 @@
     <Compile Include="Assembler.cs" />
     <Compile Include="Belt.cs" />
     <Compile Include="BeltQueue.cs" />
+    <Compile Include="Common.cs" />
     <Compile Include="CopyPlanetFactory.cs" />
     <Compile Include="ERotationType.cs" />
     <Compile Include="FactoryData.cs" />
+    <Compile Include="Gamm.cs" />
     <Compile Include="Inserter.cs" />
     <Compile Include="Lab.cs" />
     <Compile Include="MyPreBuildData.cs" />

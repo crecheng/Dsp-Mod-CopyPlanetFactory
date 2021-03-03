@@ -11,7 +11,7 @@ using UnityEngine;
 public class CopyPlanetFactory : BaseUnityPlugin
 {
 	
-	public const string Version = "1.6.5";
+	public const string Version = "1.6.6";
 	void Start()
 	{
 		Harmony.CreateAndPatchAll(typeof(CopyPlanetFactory), null);
@@ -25,7 +25,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 
 	static void readFile()
     {
-
 		string path = System.Environment.CurrentDirectory + "\\BepInEx\\config\\PlanetFactoryData\\";
 		string filename = string.Empty;
 		try
@@ -63,27 +62,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		rect = GUI.Window(1935598199, rect, mywindowfunction, "星球蓝图" + Version);
 		if (SelectData != null && isShowImg)
 		{
-			Rect ImgRect = new Rect(400, 100, 801, 400);
-			ImgX = (int)GUI.VerticalSlider(new Rect(1205, 200, 20, 200), ImgX, 0, 180);
-			ImgY = (int)GUI.HorizontalSlider(new Rect(700, 505, 200, 20), ImgY, 0, 180);
-			GUI.Label(ImgRect, SelectData.GetImg(ImgX, ImgY));
-			if (ImgX < 2 && ImgY < 2)
-			{
-				float by = ImgRect.y + ImgRect.height - 20;
-				GUI.Label(new Rect(ImgRect.x, ImgRect.y + 3, 60, 20), ST.东 + ST.北 + ST.左, noStyle);
-				GUI.Label(new Rect(ImgRect.x, by, 60, 20), ST.东 + ST.南 + ST.左, noStyle);
-				GUI.Label(new Rect(ImgRect.x + ImgRect.width / 2 - 60, ImgRect.y + 3, 60, 20), ST.东 + ST.北 + ST.右, noStyle);
-				GUI.Label(new Rect(ImgRect.x + ImgRect.width / 2 - 60, by, 60, 20), ST.东 + ST.南 + ST.右, noStyle);
-				GUI.Label(new Rect(ImgRect.x + ImgRect.width / 2 + 1, ImgRect.y + 3, 60, 20), ST.西 + ST.北 + ST.右, noStyle);
-				GUI.Label(new Rect(ImgRect.x + ImgRect.width / 2 + 1, by, 60, 20), ST.西 + ST.南 + ST.右, noStyle);
-				GUI.Label(new Rect(ImgRect.x + ImgRect.width - 60, ImgRect.y + 3, 60, 20), ST.西 + ST.北 + ST.左, noStyle);
-				GUI.Label(new Rect(ImgRect.x + ImgRect.width - 60, by, 60, 20), ST.西 + ST.南 + ST.左, noStyle);
-			}
-			if (GUI.Button(new Rect(ImgRect.x + ImgRect.width, ImgRect.y + 3, 20, 20), "X"))
-			{
-				isShowImg = false;
-			}
-
+			DataImgLabel();
 		}
 		//GUI.Label(new Rect(100, 100, 300, 700), Buginfo);
 		if (isShow)
@@ -113,6 +92,29 @@ public class CopyPlanetFactory : BaseUnityPlugin
 					PastIngData = null;
 				}
 			}
+		}
+	}
+	private void DataImgLabel()
+    {
+		Rect ImgRect = new Rect(400, 100, 801, 400);
+		ImgX = (int)GUI.VerticalSlider(new Rect(1205, 200, 20, 200), ImgX, 0, 180);
+		ImgY = (int)GUI.HorizontalSlider(new Rect(700, 505, 200, 20), ImgY, 0, 180);
+		GUI.Label(ImgRect, SelectData.GetImg(ImgX, ImgY));
+		if (ImgX < 2 && ImgY < 2)
+		{
+			float by = ImgRect.y + ImgRect.height - 20;
+			GUI.Label(new Rect(ImgRect.x, ImgRect.y + 3, 60, 20), ST.东 + ST.北 + ST.左, noStyle);
+			GUI.Label(new Rect(ImgRect.x, by, 60, 20), ST.东 + ST.南 + ST.左, noStyle);
+			GUI.Label(new Rect(ImgRect.x + ImgRect.width / 2 - 60, ImgRect.y + 3, 60, 20), ST.东 + ST.北 + ST.右, noStyle);
+			GUI.Label(new Rect(ImgRect.x + ImgRect.width / 2 - 60, by, 60, 20), ST.东 + ST.南 + ST.右, noStyle);
+			GUI.Label(new Rect(ImgRect.x + ImgRect.width / 2 + 1, ImgRect.y + 3, 60, 20), ST.西 + ST.北 + ST.右, noStyle);
+			GUI.Label(new Rect(ImgRect.x + ImgRect.width / 2 + 1, by, 60, 20), ST.西 + ST.南 + ST.右, noStyle);
+			GUI.Label(new Rect(ImgRect.x + ImgRect.width - 60, ImgRect.y + 3, 60, 20), ST.西 + ST.北 + ST.左, noStyle);
+			GUI.Label(new Rect(ImgRect.x + ImgRect.width - 60, by, 60, 20), ST.西 + ST.南 + ST.左, noStyle);
+		}
+		if (GUI.Button(new Rect(ImgRect.x + ImgRect.width, ImgRect.y + 3, 20, 20), "X"))
+		{
+			isShowImg = false;
 		}
 	}
 
@@ -222,7 +224,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			int buttonH = 20;
 			if (GUI.Button(new Rect(290, 20, buttonW, buttonH), ST.粘贴))
 			{
-				PasteData(SelectData);
+				PasteData(SelectData,ERotationType.Null);
 			}
 			if (GUI.Button(new Rect(290, 40, buttonW, buttonH), ST.赤道 + "(Y)" + ST.镜像 + ST.粘贴))
 			{
@@ -474,9 +476,11 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				var ed = player.factory.entityPool[ce.id];
 				var bd = player.factory.cargoTraffic.beltPool[inid];
 				var sid = ce.stationId;
+				var ejId = ce.powerGenId;
                 Buginfo = "eid:"+ce.id.ToString();
 				Buginfo += "\npos:" + ed.pos;
 				Buginfo += "\nrot:" + ed.rot;
+				Buginfo += "\npowerGenId:" + ejId;
 				//var eul = ed.rot.eulerAngles;
 				//Buginfo += "\nrot.eulerAngles:" + eul;
 				//Buginfo += "\nrot.eulerAngles.x:" + eul.x;
@@ -504,18 +508,13 @@ public class CopyPlanetFactory : BaseUnityPlugin
 						Buginfo +=i+":"+ conn + "," + isO + "," + other + "," + slot+"\n";
 				    }
 				}
-                if (sid > 0)
+                if (ejId > 0)
                 {
-					Buginfo += "\nSlot:";
-					var sc = player.planetData.factory.transport.stationPool[sid];
-					for(int i = 0; i < sc.slots.Length; i++)
-                    {
-						Buginfo += sc.slots[i].beltId+"|";
-						int temp= player.planetData.factory.cargoTraffic.beltPool[sc.slots[i].beltId].entityId;
-						Buginfo += temp + ",";
+					var da = player.factory.powerSystem.genPool[ejId];
 
-					}
-                }
+					Buginfo += "\nproductId:" + da.productId;
+				}
+
 
 			}
 

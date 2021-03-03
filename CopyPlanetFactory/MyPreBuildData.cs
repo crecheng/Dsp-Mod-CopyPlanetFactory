@@ -18,6 +18,7 @@ public class MyPreBuildData
 	public bool isNewRot;
 	public bool isStation;
 	public bool isLab;
+	public bool isGamm;
 
 	public MyPreBuildData()
     {
@@ -38,6 +39,7 @@ public class MyPreBuildData
 		isNewRot = false;
 		isStation = false;
 		isLab = false;
+		isGamm = false;
 	}
 
 	public void SetNewRot(FactoryTask factoryTask)
@@ -80,6 +82,21 @@ public class MyPreBuildData
 			oldEId = this.oldEId,
 			newEId = this.newEId
 		};
+    }
+	/// <summary>
+	/// 建筑连接传送带行为
+	/// </summary>
+	/// <param name="factory">工厂实例</param>
+	/// <param name="BeltEIdMap">传送带id映射</param>
+	/// <returns>是否完成连接</returns>
+	public virtual bool ConnBelt(PlanetFactory factory,Dictionary<int,int> BeltEIdMap)
+    {
+		return false;
+    }
+
+	public virtual void SetData(PlanetFactory factory,int eId)
+    {
+
     }
 
 	public int posSetNum

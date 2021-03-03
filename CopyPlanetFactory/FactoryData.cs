@@ -30,6 +30,10 @@ public class FactoryData
 	/// 发电机数据
 	/// </summary>
 	public List<Assembler> PowerData;
+	/// <summary>.
+	/// 锅盖数据
+	/// </summary>
+	public List<Gamm> GammData;
 	/// <summary>
 	/// 电线杆数据
 	/// </summary>
@@ -68,7 +72,7 @@ public class FactoryData
 	{
 		get
 		{
-			return AssemblerDate.Count + InserterData.Count + BeltData.Count + PowerData.Count + PowerNodeData.Count + StationData.Count + LabData.Count;
+			return AllData.Count;
 		}
 	}
 
@@ -103,10 +107,13 @@ public class FactoryData
 		{
 			SetBuildColor(GetImgPos(d.Pos), new Color(108f / 256f, 2f / 256f, 208f / 256f), -1, 1, -1, 1);
 		}
+		foreach (var d in GammData)
+		{
+			SetBuildColor(GetImgPos(d.Pos), new Color(108f / 256f, 2f / 256f, 208f / 256f), -2, 2, -2, 2);
+		}
 		foreach (var d in BeltData)
 		{
 			SetBuildColor(GetImgPos(d.Pos), new Color(24f / 256f, 194 / 256f, 254 / 256f), 0, 1);
-
 		}
 		foreach (var d in StationData)
 		{
@@ -157,6 +164,7 @@ public class FactoryData
 		AllData = new List<MyPreBuildData>();
 		CheckBeltData = new Dictionary<int, Belt>();
 		Name = string.Empty;
+		GammData = new List<Gamm>();
 	}
 	public FactoryData()
     {
@@ -175,6 +183,7 @@ public class FactoryData
 		ItemNeed.Clear();
 		AllData.Clear();
 		CheckBeltData.Clear();
+		GammData.Clear();
 	}
 
 	public string Name;
@@ -189,7 +198,7 @@ public class FactoryData
 		{
 			Directory.CreateDirectory(path);
 		}
-		string[] s = new string[Count + 7 + 7];
+		string[] s = new string[Count + 8 + 7];
 		//文件名
 		s[0] = Name;
 		s[1] = GetItemCountData(true);
@@ -229,6 +238,11 @@ public class FactoryData
 		{
 			s[i++] = d.GetData();
 		}
+		s[i++] = GammData.Count.ToString();
+		foreach (var d in GammData)
+		{
+			s[i++] = d.GetData();
+		}
 		for (; i < s.Length; i++)
 		{
 			s[i] = string.Empty;
@@ -265,7 +279,9 @@ public class FactoryData
 						int i = 3;
 						for (int j = 0; j < c; j++)
 						{
-							AssemblerDate.Add(new Assembler(s[i + j]));
+							var temp = new Assembler(s[i + j]);
+							AssemblerDate.Add(temp);
+							AllData.Add(temp);
 						}
 						i += c;
 						c = int.Parse(s[i]);
@@ -273,7 +289,9 @@ public class FactoryData
 
 						for (int j = 0; j < c; j++)
 						{
-							PowerData.Add(new Assembler(s[i + j]));
+							var temp = new Assembler(s[i + j]);
+							PowerData.Add(temp);
+							AllData.Add(temp);
 						}
 						i += c;
 						c = int.Parse(s[i]);
@@ -281,7 +299,9 @@ public class FactoryData
 
 						for (int j = 0; j < c; j++)
 						{
-							PowerNodeData.Add(new Assembler(s[i + j]));
+							var temp = new Assembler(s[i + j]);
+							PowerNodeData.Add(temp);
+							AllData.Add(temp);
 						}
 						i += c;
 						c = int.Parse(s[i]);
@@ -289,7 +309,9 @@ public class FactoryData
 
 						for (int j = 0; j < c; j++)
 						{
-							InserterData.Add(new Inserter(s[i + j]));
+							var temp = new Inserter(s[i + j]);
+							InserterData.Add(temp);
+							AllData.Add(temp);
 						}
 						i += c;
 						c = int.Parse(s[i]);
@@ -297,7 +319,9 @@ public class FactoryData
 
 						for (int j = 0; j < c; j++)
 						{
-							BeltData.Add(new Belt(s[i + j]));
+							var temp = new Belt(s[i + j]);
+							BeltData.Add(temp);
+							AllData.Add(temp);
 						}
 						i += c;
 
@@ -311,7 +335,10 @@ public class FactoryData
 						{
 							Station temp = new Station(s[i + j]);
 							if (temp.isStation)
+							{
 								StationData.Add(temp);
+								AllData.Add(temp);
+							}
 						}
 						i += c;
 						if (s.Length < i + 1)
@@ -326,7 +353,29 @@ public class FactoryData
 						{
 							Lab temp = new Lab(s[i + j]);
 							if (temp.isLab)
+							{
 								LabData.Add(temp);
+								AllData.Add(temp);
+							}
+						}
+						i += c;
+
+						if (s.Length < i + 1)
+							return;
+						if (s[i].Length < 1)
+							return;
+						c = int.Parse(s[i]);
+						i++;
+						if (s.Length < i + c)
+							return;
+						for (int j = 0; j < c; j++)
+						{
+							Gamm temp = new Gamm(s[i + j]);
+							if (temp.isGamm)
+							{
+								GammData.Add(temp);
+								AllData.Add(temp);
+							}
 						}
 						i += c;
 
@@ -415,11 +464,24 @@ public class FactoryData
 			var ed = factory.entityPool[ap.entityId];
 			if (!TryAddData(ed, eidSet))
 				continue;
-			var temp = new Assembler(GetPreDate(ap, ed));
-			temp.oldEId = ap.entityId;
-			PowerData.Add(temp);
-			AllData.Add(temp);
-			AddItemCount(ed.protoId);
+			if (ap.gamma)
+			{
+				int c0 = factory.entityConnPool[16 * ap.entityId];
+				int c1 = factory.entityConnPool[16 * ap.entityId+1];
+				var temp = new Gamm(GetPreDate(ap, ed),ap.productId,c0,c1);
+				temp.oldEId = ap.entityId;
+				GammData.Add(temp);
+				AllData.Add(temp);
+				AddItemCount(ed.protoId);
+			}
+			else
+			{
+				var temp = new Assembler(GetPreDate(ap, ed));
+				temp.oldEId = ap.entityId;
+				PowerData.Add(temp);
+				AllData.Add(temp);
+				AddItemCount(ed.protoId);
+			}
 		}
 		for (int i = 1; i < factory.powerSystem.nodeCursor; i++)
 		{

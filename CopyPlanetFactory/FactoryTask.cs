@@ -58,6 +58,10 @@ public class FactoryTask
 	/// </summary>
 	public List<Station> BuildStationData;
 	/// <summary>
+	/// 建筑完成的锅盖数据，等待连接
+	/// </summary>
+	public List<Gamm> BuildGammData;
+	/// <summary>
 	/// 建筑完成的爪子数据，等待连接
 	/// </summary>
 	public Dictionary<int, Inserter> preInserterMap;
@@ -134,7 +138,7 @@ public class FactoryTask
 		{
 			return	preIdMap.Count>0|| preInserterMap.Count>0 ||
 					belts.Count>0 || WaitBuildCount > 0||
-					BuildStationData.Count>0||BuildBeltData.Count>0;
+					BuildStationData.Count>0||BuildBeltData.Count>0||BuildGammData.Count>0;
 		}
 	}
 
@@ -170,12 +174,14 @@ public class FactoryTask
 		preIdMap = new Dictionary<int, MyPreBuildData>();
 		BuildBeltData = new List<Belt>();
 		BuildStationData = new List<Station>();
+		BuildGammData = new List<Gamm>();
 		preInserterMap = new Dictionary<int, Inserter>();
 		BeltEIdMap = new Dictionary<int, int>();
 		itemNeedString = string.Empty;
 		belts = new BeltQueue();
 		WaitNeedItem = new Dictionary<int, int>();
 		WaitItemBuild = new List<MyPreBuildData>();
+
 		buildS = 0;
 		buildF = 0;
 		buildF1 = 0;
@@ -183,6 +189,7 @@ public class FactoryTask
 		BeltCount = 0;
 		RotationType = ERotationType.Null;
 		playerHaveBeltItem = true;
+		playerHaveInserterItem = true;
 	}
 
 	public void ClearData()
@@ -203,6 +210,7 @@ public class FactoryTask
 		eIdMap.Clear();
 		BuildBeltData.Clear();
 		BuildStationData.Clear();
+		BuildGammData.Clear();
 		preInserterMap.Clear();
 		BeltEIdMap.Clear();
 		belts.Clear();
@@ -253,7 +261,9 @@ public class FactoryTask
 		GetWaitNeedItem = sb.ToString() ;
 	}
 
-
+	/// <summary>
+	/// 补充物品
+	/// </summary>
 	public void ReplenishItem()
 	{
 		if (CheckData())
@@ -300,7 +310,6 @@ public class FactoryTask
 		}
 	}
 
-
 	public void CopyData(PlanetFactory factory)
     {
 		if (CheckData())
@@ -310,39 +319,12 @@ public class FactoryTask
 		}
 	}
 
-
 	public long GetPosLong(Vector3 p)
     {
 		long x = (long)(p.x * 100);
 		long y = (long)(p.y * 100);
 		long z = (long)(p.z * 100);
 		return x * 10000000000 + y * 100000 + z;
-    }
-
-	private void SetLab(int eid, MyPreBuildData d)
-    {
-		Lab lab = (Lab)d;
-		var labId = planetFactory.entityPool[eid].labId;
-		planetFactory.factorySystem.labPool[labId].SetFunction(lab.isResearchMode, lab.LabRecpId, lab.LabTech, planetFactory.entitySignPool);
-    }
-
-	private void SetStation(int eid,MyPreBuildData d)
-    {
-        if (CheckData())
-        {
-			Station station = (Station)d;
-			var f = GameMain.mainPlayer.factory;
-			int sId = f.entityPool[eid].stationId;
-			var sc = f.transport.stationPool[sId];
-			int minLen = Math.Min(sc.storage.Length, station.storage.Length);
-			for(int i = 0; i < minLen; i++)
-            {
-				sc.storage[i] = station.storage[i];
-            }
-			station.newEId = eid;
-			BuildStationData.Add(station);
-			TryConnStation();
-        }
     }
 
 	/// <summary>
@@ -372,7 +354,7 @@ public class FactoryTask
 				if (pd.outConn != 0)
 				{
 					//读取连接端口数据
-					ReadObjectConn(pd.outConn, out bool isO, out int other, out int slot);
+					Common.ReadObjectConn(pd.outConn, out bool isO, out int other, out int slot);
 					//设置连接端口数据
 					player.planetData.factory.WriteObjectConn(eid, 0, isO, eIdMap[target], slot);
 				}
@@ -386,7 +368,7 @@ public class FactoryTask
 				if (pd.inConn != 0)
 				{
 					//读取连接端口数据
-					ReadObjectConn(pd.inConn, out bool isO, out int other, out int slot);
+					Common.ReadObjectConn(pd.inConn, out bool isO, out int other, out int slot);
 					//设置连接端口数据
 					player.planetData.factory.WriteObjectConn(eid, 1, isO, eIdMap[pick], slot);
 				}
@@ -395,50 +377,51 @@ public class FactoryTask
 		}
 	}
 
-	private void TryConnStation()
+	private void TryStationConn()
 	{
 		List<Station> temp = new List<Station>();
 		foreach (var d in BuildStationData)
 		{
-			bool isMissing = false;
-			int sId = planetFactory.entityPool[d.newEId].stationId;
-			StationComponent sc = planetFactory.transport.stationPool[sId];
-			for (int i = 0; i < sc.slots.Length; i++)
-			{
-				int oldBeltId = d.slots[i].beltId;
-				if (oldBeltId > 0&&sc.slots[i].beltId==0)
-				{
-					if (BeltEIdMap.ContainsKey(oldBeltId))
-					{
-						int NewbeltEId = BeltEIdMap[oldBeltId];
-						int beltId = planetFactory.entityPool[NewbeltEId].beltId;
-						sc.slots[i] = d.slots[i];
-						sc.slots[i].beltId = beltId;
-                        if (sc.slots[i].dir == IODir.Input)
-                        {
-							planetFactory.WriteObjectConn(d.newEId, i, false, NewbeltEId, 0);
-                        }
-						else if(sc.slots[i].dir == IODir.Output)
-                        {
-							planetFactory.WriteObjectConn(d.newEId, i, true, NewbeltEId, 1);
-						}
-					}
-					else
-					{
-						isMissing = true;
-					}
-				}
-			}
-            if (!isMissing)
+            if (!d.ConnBelt(planetFactory,BeltEIdMap))
             {
 				temp.Add(d);
             }
 		}
-
 		foreach(var d in temp)
         {
 			BuildStationData.Remove(d);
         }
+	}
+
+	/// <summary>
+	/// 传送带建造完成时对传送带数据尝试连接
+	/// </summary>
+	public void TryBeltConn()
+	{
+		List<Belt> tmp = new List<Belt>();
+		foreach (var d in BuildBeltData)
+		{
+			if (d.ConnBelt(planetFactory, BeltEIdMap))
+				tmp.Add(d);
+		}
+		foreach (var d in tmp)
+		{
+			BuildBeltData.Remove(d);
+		}
+	}
+
+	public void TryGammConn()
+	{
+		List<Gamm> tmp = new List<Gamm>();
+		foreach (var d in BuildGammData)
+		{
+			if (d.ConnBelt(planetFactory, BeltEIdMap))
+				tmp.Add(d);
+		}
+		foreach (var d in tmp)
+		{
+			BuildGammData.Remove(d);
+		}
 	}
 
 	public void AddPasteData(Player player1,MyPreBuildData d)
@@ -531,6 +514,10 @@ public class FactoryTask
             {
 				AddPasteData(player1, d);
 			}
+			foreach(var d in Data.GammData)
+            {
+				AddPasteData(player1, d);
+			}
 
 			//粘贴传送带数据
 			foreach (var d in Data.BeltData)
@@ -576,6 +563,7 @@ public class FactoryTask
 				if (belts.Count > 0 && playerHaveBeltItem)
 				{
 					var dd = belts.Peek();
+					int c1 = eIdMap.Count;
 					AddPrebuildData(player, dd, out int pid, true);
 					//Debug.Log(pid);
 					if (pid > 0)
@@ -587,40 +575,19 @@ public class FactoryTask
 						BeltCount++;
 						belts.Dequeue();
 					}
+					else if (eIdMap.Count - c1 > 0)
+					{
+						belts.Dequeue();
+					}
 				}
+				if (belts.Count <= 0)
+					break;
 				if (i > 10000)
 					break;
 			} while (BeltCount < 1000);
 		}
 	}
 
-
-
-	/// <summary>
-	/// 获取空的连接口
-	/// </summary>
-	/// <param name="eid">eid</param>
-	/// <param name="start">连接口开始检索数</param>
-	/// <returns></returns>
-	public int GetEmptyConn(int eid,int start)
-    {
-        for (; start < 16; start++)
-        {
-			try
-			{
-				if (player.planetData.factory.entityConnPool[eid * 16 + start] == 0)
-				{
-					return start;
-				}
-            }
-            catch(Exception e)
-            {
-				Debug.LogError("GetEmptyConnError");
-				Debug.LogError(e.Message);
-            }
-        }
-		return -1;
-    }
 
 	/// <summary>
 	/// 有建筑建造完成时，对预建造数据进行处理
@@ -642,21 +609,36 @@ public class FactoryTask
 				BeltCount--;
 				BuildBeltData.Add((Belt)d);
 				BeltEIdMap.Add(d.oldEId, eid);
-				BeltBuild();
+				TryBeltConn();
 			}
 			if (d.isStation)
 			{
-				SetStation(eid, d);
+				d.SetData(planetFactory, eid);
+				BuildStationData.Add((Station)d);
+				TryStationConn();
 			}
             if (d.isLab)
             {
-				SetLab(eid, d);
+				d.SetData(planetFactory, eid);
+            }
+            if (d.isGamm)
+            {
+				d.SetData(planetFactory, eid);
+				BuildGammData.Add((Gamm)d);
+				TryGammConn();
+            }
+			int ejectorId = planetFactory.entityPool[eid].ejectorId;
+
+			if (ejectorId > 0)
+            {
+				planetFactory.factorySystem.ejectorPool[ejectorId].orbitId = 1;
             }
 			preIdMap.Remove(preId);
             if (flag)
             {
 				BeltQueueDequeue();
-				TryConnStation();
+				TryStationConn();
+				TryGammConn();
 			}
             if (preIdMap.Count < 800)
             {
@@ -668,7 +650,7 @@ public class FactoryTask
 		else if (preIdMap.Count == 0)
 		{
 			TryBuildInserter();
-			BeltBuild();
+			TryBeltConn();
 		}
 	}
 
@@ -714,79 +696,11 @@ public class FactoryTask
 
 	}
 
-
-	/// <summary>
-	/// 传送带建造完成时对传送带数据尝试连接
-	/// </summary>
-	public void BeltBuild()
-    {
-		List<Belt> tmp = new List<Belt>();
-		foreach(var d in BuildBeltData)
-        {
-			int out1 = d.beltOut;
-			int in1 = d.beltIn1;
-			int in2 = d.beltIn2;
-			int in3 = d.beltIn3;
-            if (out1 == 0|| BeltEIdMap.ContainsKey(out1))
-            {
-				if(in1==0||BeltEIdMap.ContainsKey(in1))
-					if (in2 == 0 || BeltEIdMap.ContainsKey(in2))
-						if (in3 == 0 || BeltEIdMap.ContainsKey(in3))
-                        {
-							SetBelt(d);
-							tmp.Add(d);
-                        }
-
-
-			}
-        }
-		foreach(var d in tmp)
-        {
-			BuildBeltData.Remove(d);
-        }
-
-    }
-
 	public void NewData()
     {
 		Data = new FactoryData();
     }
 
-	/// <summary>
-	/// 传送带连接
-	/// </summary>
-	/// <param name="d"></param>
-	public void SetBelt(MyPreBuildData data)
-    {
-		Belt d = (Belt)data;
-		var pf = player.planetData.factory;
-		int out1 = 0;
-		int in1 =0;
-		int in2 =0;
-		int in3 = 0;
-		if (BeltEIdMap.ContainsKey(d.beltOut))
-        {
-			int other = BeltEIdMap[d.beltOut];
-			out1 =pf.entityPool[other].beltId;
-			int otherSlot = GetEmptyConn(other, 1);
-			if (otherSlot > 0)
-				pf.WriteObjectConn(d.newEId, 0, true, other, otherSlot);
-		}
-		if (BeltEIdMap.ContainsKey(d.beltIn1))
-		{
-			in1 = pf.entityPool[BeltEIdMap[d.beltIn1]].beltId;
-		}
-		if (BeltEIdMap.ContainsKey(d.beltIn2))
-		{
-			in2 = pf.entityPool[BeltEIdMap[d.beltIn2]].beltId;
-		}
-		if (BeltEIdMap.ContainsKey(d.beltIn3))
-		{
-			in3 = pf.entityPool[BeltEIdMap[d.beltIn3]].beltId;
-		}
-		int beltId = pf.entityPool[d.newEId].beltId;
-		pf.cargoTraffic.AlterBeltConnections(beltId, out1, in1, in2, in3);
-	}
 
 	private bool IsInArea(Vector3 pos,bool[] area)
     {
@@ -961,7 +875,6 @@ public class FactoryTask
 					{
 						d.newEId = eid;
 						eIdMap.Add(d.oldEId, eid);
-
 					}
 					if (player.planetData.factory.entityPool[eid].beltId > 0)
 					{
@@ -1025,34 +938,6 @@ public class FactoryTask
 			}
 		}
 		return false;
-	}
-
-	/// <summary>
-	/// 对接口数据进行解析
-	/// </summary>
-	/// <param name="num">接口数据</param>
-	/// <param name="isOutput">是否是出货</param>
-	/// <param name="otherObjId">连接到其他物品的eid</param>
-	/// <param name="otherSlot">连接到其他物品端口号0-15</param>
-	static public void ReadObjectConn(int num, out bool isOutput, out int otherObjId, out int otherSlot)
-	{
-		isOutput = false;
-		otherObjId = 0;//连接实体id
-		otherSlot = 0;//端口号
-		if (num == 0)
-		{
-			return;
-		}
-		bool flag = num > 0;
-		num = ((!flag) ? (-num) : num);
-		isOutput = ((num & 536870912) == 0);
-		otherObjId = (num & 16777215);
-		otherSlot = (num & 536870911) >> 24;
-		if (!flag)
-		{
-			otherObjId = -otherObjId;
-		}
-
 	}
 
 }

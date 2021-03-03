@@ -46,7 +46,14 @@ public class Lab:MyPreBuildData
 		s += $",{isResearchMode},{LabRecpId},{LabTech}";
 		return s;
 	}
-    public override MyPreBuildData GetCopy()
+
+    public override void SetData(PlanetFactory factory, int eId)
+    {
+		var labId = factory.entityPool[eId].labId;
+		factory.factorySystem.labPool[labId].SetFunction(isResearchMode, LabRecpId, LabTech, factory.entitySignPool);
+
+	}
+	public override MyPreBuildData GetCopy()
     {
         return new Lab(pd,isResearchMode,LabRecpId,LabTech) 
 		{

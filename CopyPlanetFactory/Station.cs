@@ -106,6 +106,52 @@ public class Station:MyPreBuildData
 		return s;
 	}
 
+    public override bool ConnBelt(PlanetFactory factory, Dictionary<int, int> BeltEIdMap)
+    {
+		bool isMissing = false;
+		int sId = factory.entityPool[newEId].stationId;
+		StationComponent sc = factory.transport.stationPool[sId];
+		for (int i = 0; i < sc.slots.Length; i++)
+		{
+			int oldBeltId = slots[i].beltId;
+			if (oldBeltId > 0 && sc.slots[i].beltId == 0)
+			{
+				if (BeltEIdMap.ContainsKey(oldBeltId))
+				{
+					int NewbeltEId = BeltEIdMap[oldBeltId];
+					int beltId = factory.entityPool[NewbeltEId].beltId;
+					sc.slots[i] = slots[i];
+					sc.slots[i].beltId = beltId;
+					if (sc.slots[i].dir == IODir.Input)
+					{
+						factory.WriteObjectConn(newEId, i, false, NewbeltEId, 0);
+					}
+					else if (sc.slots[i].dir == IODir.Output)
+					{
+						factory.WriteObjectConn(newEId, i, true, NewbeltEId, 1);
+					}
+				}
+				else
+				{
+					isMissing = true;
+				}
+			}
+		}
+		return isMissing;
+    }
+
+    public override void SetData(PlanetFactory factory, int eId)
+    {
+		int sId = factory.entityPool[eId].stationId;
+		var sc = factory.transport.stationPool[sId];
+		int minLen = Math.Min(sc.storage.Length, storage.Length);
+		for (int i = 0; i < minLen; i++)
+		{
+			sc.storage[i] =storage[i];
+		}
+		newEId = eId;
+	}
+
     public override MyPreBuildData GetCopy()
     {
 		var temp = new Station(pd);

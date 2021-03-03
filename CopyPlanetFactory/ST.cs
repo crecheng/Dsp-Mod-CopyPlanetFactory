@@ -410,6 +410,22 @@ public class ST
         }
     }
 
+
+    public static string 旋转
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "旋转";
+            }
+            else
+            {
+                return "Sipn";
+            }
+        }
+    }
+
     public static string 半球
     {
         get
