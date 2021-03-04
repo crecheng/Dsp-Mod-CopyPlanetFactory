@@ -12,6 +12,8 @@ public class Station:MyPreBuildData
 	{
 		pd = prebuild;
 		isStation = true;
+		isNeedConn = true;
+		type = EDataType.Station;
 		slots = new SlotData[sc.slots.Length];
 		for (int i = 0; i < slots.Length; i++)
 		{
@@ -31,7 +33,8 @@ public class Station:MyPreBuildData
     {
 		pd = prebuild;
 		isStation = true;
-    }
+		type = EDataType.Station;
+	}
 
 	public Station(string data)
 	{
@@ -40,7 +43,7 @@ public class Station:MyPreBuildData
 		if (s.Length > 9)
 		{
 			isStation = true;
-
+			type = EDataType.Station;
 			pd.protoId = short.Parse(s[0]);
 			pd.modelIndex = short.Parse(s[1]);
 			pd.pos = new Vector3(float.Parse(s[2]), float.Parse(s[3]), float.Parse(s[4]));

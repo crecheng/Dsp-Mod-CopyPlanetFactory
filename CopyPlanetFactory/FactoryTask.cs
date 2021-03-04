@@ -54,13 +54,9 @@ public class FactoryTask
 	/// </summary>
 	public List<Belt> BuildBeltData;
 	/// <summary>
-	/// 建筑完成的运输站数据，等待连接
+	/// 建筑完成的数据，等待连接
 	/// </summary>
-	public List<Station> BuildStationData;
-	/// <summary>
-	/// 建筑完成的锅盖数据，等待连接
-	/// </summary>
-	public List<Gamm> BuildGammData;
+	public List<MyPreBuildData> NeedConnData;
 	/// <summary>
 	/// 建筑完成的爪子数据，等待连接
 	/// </summary>
@@ -87,7 +83,6 @@ public class FactoryTask
 	public bool haveInserter;
 	public bool haveBelt;
 	private string itemNeedString;
-	private int itemNeedCount;
 	public ERotationType RotationType { get; private set; }
 	private bool[] area;
 	public int WaitBuildCount
@@ -138,7 +133,7 @@ public class FactoryTask
 		{
 			return	preIdMap.Count>0|| preInserterMap.Count>0 ||
 					belts.Count>0 || WaitBuildCount > 0||
-					BuildStationData.Count>0||BuildBeltData.Count>0||BuildGammData.Count>0;
+					NeedConnData.Count>0||BuildBeltData.Count>0;
 		}
 	}
 
@@ -173,8 +168,7 @@ public class FactoryTask
 		eidSet = new HashSet<int>();
 		preIdMap = new Dictionary<int, MyPreBuildData>();
 		BuildBeltData = new List<Belt>();
-		BuildStationData = new List<Station>();
-		BuildGammData = new List<Gamm>();
+		NeedConnData = new List<MyPreBuildData>();
 		preInserterMap = new Dictionary<int, Inserter>();
 		BeltEIdMap = new Dictionary<int, int>();
 		itemNeedString = string.Empty;
@@ -195,7 +189,6 @@ public class FactoryTask
 	public void ClearData()
 	{
 		Data.Clear();
-		itemNeedCount = 0;
 		itemNeedString = string.Empty;
 		PasteClear();
 	}
@@ -209,8 +202,7 @@ public class FactoryTask
 		eidSet.Clear();
 		eIdMap.Clear();
 		BuildBeltData.Clear();
-		BuildStationData.Clear();
-		BuildGammData.Clear();
+		NeedConnData.Clear();
 		preInserterMap.Clear();
 		BeltEIdMap.Clear();
 		belts.Clear();
@@ -377,21 +369,6 @@ public class FactoryTask
 		}
 	}
 
-	private void TryStationConn()
-	{
-		List<Station> temp = new List<Station>();
-		foreach (var d in BuildStationData)
-		{
-            if (!d.ConnBelt(planetFactory,BeltEIdMap))
-            {
-				temp.Add(d);
-            }
-		}
-		foreach(var d in temp)
-        {
-			BuildStationData.Remove(d);
-        }
-	}
 
 	/// <summary>
 	/// 传送带建造完成时对传送带数据尝试连接
@@ -410,35 +387,33 @@ public class FactoryTask
 		}
 	}
 
-	public void TryGammConn()
+	public void TryConn()
 	{
-		List<Gamm> tmp = new List<Gamm>();
-		foreach (var d in BuildGammData)
+		List<MyPreBuildData> tmp = new List<MyPreBuildData>();
+		foreach (var d in NeedConnData)
 		{
 			if (d.ConnBelt(planetFactory, BeltEIdMap))
 				tmp.Add(d);
 		}
 		foreach (var d in tmp)
 		{
-			BuildGammData.Remove(d);
+			NeedConnData.Remove(d);
 		}
 	}
 
-	public void AddPasteData(Player player1,MyPreBuildData d)
-    {
-		if (IsInArea(d.Pos, area))
+	public void AddPasteData(Player player1, MyPreBuildData d)
+	{
+
+		//复制一份数据
+		var dd = d.GetCopy();
+		//加入预建造数据
+		AddPrebuildData(player1, dd, out int pid);
+		//如果加入成功
+		if (pid > 0)
 		{
-			//复制一份数据
-			var dd = d.GetCopy();
+			dd.preId = pid;
 			//加入预建造数据
-			AddPrebuildData(player1, dd, out int pid);
-			//如果加入成功
-			if (pid > 0)
-			{
-				dd.preId = pid;
-				//加入预建造数据
-				preIdMap.Add(pid, dd);
-			}
+			preIdMap.Add(pid, dd);
 		}
 	}
 
@@ -490,53 +465,27 @@ public class FactoryTask
 					Debug.LogError(e.Message);
 				}
 			}
-			//粘贴工作台
-			foreach (var d in Data.AssemblerDate)
-			{
-				AddPasteData(player1, d);
-			}
-			///粘贴发电机
-			foreach (var d in Data.PowerData)
-			{
-				AddPasteData(player1, d);
-			}
-			//粘贴电线杆数据
-			foreach (var d in Data.PowerNodeData)
-			{
-				AddPasteData(player1, d);
-			}
-			//粘贴物流站数据
-			foreach (var d in Data.StationData)
-			{
-				AddPasteData(player1, d);
-			}
-			foreach(var d in Data.LabData)
+			foreach(var d in Data.AllData)
             {
-				AddPasteData(player1, d);
-			}
-			foreach(var d in Data.GammData)
-            {
-				AddPasteData(player1, d);
-			}
+				if (IsInArea(d.Pos, area))
+				{
+					if (d.isInserter)
+					{
+						var dd = (Inserter)d.GetCopy();
+						PreInserterData.Add(dd);
+					}
+					else if (d.isBelt)
+                    {
+						Belt dd = (Belt)d.GetCopy();
+						belts.Enqueue(dd);
+					}
+                    else
+                    {
+						AddPasteData(player1, d);
+                    }
+				}
 
-			//粘贴传送带数据
-			foreach (var d in Data.BeltData)
-			{
-				if (IsInArea(d.Pos, SelectArea))
-				{
-					Belt dd = (Belt)d.GetCopy();
-					belts.Enqueue(dd);
-				}
-			}
-			//将爪子数据加入备选列表
-			foreach (var d in Data.InserterData)
-			{
-				if (IsInArea(d.Pos, SelectArea))
-				{
-					var dd = (Inserter)d.GetCopy();
-					PreInserterData.Add(dd);
-				}
-			}
+            }
 			if (preIdMap.Count == 0)
 			{
 				TryBuildInserter();
@@ -603,7 +552,7 @@ public class FactoryTask
 			eIdMap.Add(d.oldEId, eid);
 			//Debug.Log(d.isBelt);
 			bool flag = d.isBelt;
-
+			
 			if (flag)
             {
 				BeltCount--;
@@ -611,34 +560,25 @@ public class FactoryTask
 				BeltEIdMap.Add(d.oldEId, eid);
 				TryBeltConn();
 			}
-			if (d.isStation)
-			{
-				d.SetData(planetFactory, eid);
-				BuildStationData.Add((Station)d);
-				TryStationConn();
-			}
-            if (d.isLab)
-            {
-				d.SetData(planetFactory, eid);
-            }
-            if (d.isGamm)
-            {
-				d.SetData(planetFactory, eid);
-				BuildGammData.Add((Gamm)d);
-				TryGammConn();
-            }
-			int ejectorId = planetFactory.entityPool[eid].ejectorId;
 
+			d.SetData(planetFactory, eid);
+            if (d.isNeedConn)
+            {
+				NeedConnData.Add(d);
+				TryConn();
+            }
+
+			int ejectorId = planetFactory.entityPool[eid].ejectorId;
 			if (ejectorId > 0)
             {
 				planetFactory.factorySystem.ejectorPool[ejectorId].orbitId = 1;
             }
+
 			preIdMap.Remove(preId);
             if (flag)
             {
 				BeltQueueDequeue();
-				TryStationConn();
-				TryGammConn();
+				TryConn();
 			}
             if (preIdMap.Count < 800)
             {

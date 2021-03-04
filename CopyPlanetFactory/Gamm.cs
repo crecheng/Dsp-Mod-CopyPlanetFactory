@@ -12,6 +12,8 @@ public class Gamm : MyPreBuildData
     public Gamm(PrebuildData prebuild,int ProduceId,int conn0,int conn1)
     {
         isGamm = true;
+        isNeedConn = true;
+        type = EDataType.Gamm;
         pd = prebuild;
         this.conn0 = conn0;
         this.conn1 = conn1;
@@ -25,6 +27,7 @@ public class Gamm : MyPreBuildData
         if (s.Length > 10)
         {
             isGamm = true;
+            type = EDataType.Gamm;
             pd.protoId = short.Parse(s[0]);
             pd.modelIndex = short.Parse(s[1]);
             pd.pos = new Vector3(float.Parse(s[2]), float.Parse(s[3]), float.Parse(s[4]));
@@ -68,7 +71,7 @@ public class Gamm : MyPreBuildData
                 return true;
             }
         }
-        return false; ;
+        return false; 
     }
 
     public override string GetData()

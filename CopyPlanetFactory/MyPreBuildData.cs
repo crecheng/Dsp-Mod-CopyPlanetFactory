@@ -19,6 +19,9 @@ public class MyPreBuildData
 	public bool isStation;
 	public bool isLab;
 	public bool isGamm;
+	public bool isSplitter;
+	public bool isNeedConn;
+	public EDataType type;
 
 	public MyPreBuildData()
     {
@@ -40,6 +43,9 @@ public class MyPreBuildData
 		isStation = false;
 		isLab = false;
 		isGamm = false;
+		isNeedConn = false;
+		isSplitter = false;
+		type = EDataType.Null;
 	}
 
 	public void SetNewRot(FactoryTask factoryTask)
@@ -70,10 +76,15 @@ public class MyPreBuildData
 		}
 	}
 
+	/// <summary>
+	/// 获取保存数据的string
+	/// </summary>
+	/// <returns></returns>
 	public virtual string  GetData() 
 	{
 		return "";
 	}
+
 
 	public virtual MyPreBuildData GetCopy()
     {
@@ -91,9 +102,14 @@ public class MyPreBuildData
 	/// <returns>是否完成连接</returns>
 	public virtual bool ConnBelt(PlanetFactory factory,Dictionary<int,int> BeltEIdMap)
     {
-		return false;
+		return true;
     }
 
+	/// <summary>
+	/// 设置数据
+	/// </summary>
+	/// <param name="factory">工厂实例</param>
+	/// <param name="eId">eid</param>
 	public virtual void SetData(PlanetFactory factory,int eId)
     {
 

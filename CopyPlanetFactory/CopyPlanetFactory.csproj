@@ -64,6 +64,7 @@
     <Compile Include="BeltQueue.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="CopyPlanetFactory.cs" />
+    <Compile Include="EDataType.cs" />
     <Compile Include="ERotationType.cs" />
     <Compile Include="FactoryData.cs" />
     <Compile Include="Gamm.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="FactoryTask.cs" />
     <Compile Include="PlanetFactoryImg.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Splitter.cs" />
     <Compile Include="ST.cs" />
     <Compile Include="Station.cs" />
   </ItemGroup>

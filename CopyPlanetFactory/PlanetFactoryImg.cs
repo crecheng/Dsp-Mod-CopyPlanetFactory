@@ -32,29 +32,34 @@ public class PlanetFactoryImg
 		{
 			Img.SetPixel(401, i, Color.black);
 		}
-		foreach (var d in data.AssemblerDate)
-		{
-			SetBuildColor(GetImgPos(d.Pos), new Color(232f / 256f, 253 / 256f, 77 / 256f), -1, 1, -1, 1);
+		List<Vector3> belt = new List<Vector3>();	
+		foreach(var d in data.AllData)
+        {
+			switch (d.type)
+			{
+				case EDataType.Assembler:
+					SetBuildColor(GetImgPos(d.Pos), new Color(232f / 256f, 253 / 256f, 77 / 256f), -1, 1, -1, 1);
+					break;
+				case EDataType.Belt:
+					belt.Add(d.Pos);
+					break;
+				case EDataType.Lab:
+					SetBuildColor(GetImgPos(d.Pos), Color.white, -2, 2, -2, 2);
+					break;
+				case EDataType.Station:
+					SetBuildColor(GetImgPos(d.Pos), new Color(218f / 256f, 83f / 256f, 2f / 256f), -3, 3, -3, 3);
+					break;
+				case EDataType.PowGen:
+					SetBuildColor(GetImgPos(d.Pos), new Color(108f / 256f, 2f / 256f, 208f / 256f), -1, 1, -1, 1);
+					break;
+				case EDataType.Gamm:
+					SetBuildColor(GetImgPos(d.Pos), new Color(108f / 256f, 2f / 256f, 208f / 256f), -2, 2, -2, 2);
+					break;
+			}
 		}
-		foreach (var d in data.PowerData)
+		foreach (var d in belt)
 		{
-			SetBuildColor(GetImgPos(d.Pos), new Color(108f / 256f, 2f / 256f, 208f / 256f), -1, 1, -1, 1);
-		}
-		foreach (var d in data.GammData)
-		{
-			SetBuildColor(GetImgPos(d.Pos), new Color(108f / 256f, 2f / 256f, 208f / 256f), -2, 2, -2, 2);
-		}
-		foreach (var d in data.BeltData)
-		{
-			SetBuildColor(GetImgPos(d.Pos), new Color(24f / 256f, 194 / 256f, 254 / 256f), 0, 1);
-		}
-		foreach (var d in data.StationData)
-		{
-			SetBuildColor(GetImgPos(d.Pos), new Color(218f / 256f, 83f / 256f, 2f / 256f), -3, 3, -3, 3);
-		}
-		foreach (var d in data.LabData)
-		{
-			SetBuildColor(GetImgPos(d.Pos), Color.white, -2, 2, -2, 2);
+			SetBuildColor(GetImgPos(d), new Color(24f / 256f, 194 / 256f, 254 / 256f), 0, 1);
 		}
 		Img.Apply();
 		return Img;

@@ -15,39 +15,6 @@ public class FactoryData
 	/// </summary>
 	string path;
 	/// <summary>
-	/// 工作台数据
-	/// </summary>
-	public List<Assembler> AssemblerDate;
-	/// <summary>
-	/// 爪子数据
-	/// </summary>
-	public List<Inserter> InserterData;
-	/// <summary>
-	/// 传送带数据
-	/// </summary>
-	public List<Belt> BeltData;
-	/// <summary>.
-	/// 发电机数据
-	/// </summary>
-	public List<Assembler> PowerData;
-	/// <summary>.
-	/// 锅盖数据
-	/// </summary>
-	public List<Gamm> GammData;
-	/// <summary>
-	/// 电线杆数据
-	/// </summary>
-	public List<Assembler> PowerNodeData;
-	/// <summary>
-	/// 运输站数据
-	/// </summary>
-	public List<Station> StationData;
-	/// <summary>
-	/// 研究站数据
-	/// </summary>
-	public List<Lab> LabData;
-
-	/// <summary>
 	/// 全部数据
 	/// </summary>
 	public List<MyPreBuildData> AllData;
@@ -83,19 +50,11 @@ public class FactoryData
 	void Init()
     {
 		path = System.Environment.CurrentDirectory + "\\BepInEx\\config\\PlanetFactoryData";
-		AssemblerDate = new List<Assembler>();
-		InserterData = new List<Inserter>();
-		BeltData = new List<Belt>();
-		PowerData = new List<Assembler>();
-		PowerNodeData = new List<Assembler>();
-		StationData = new List<Station>();
-		LabData = new List<Lab>();
 		ItemNeed = new Dictionary<int, int>();
 		isInitItem = false;
 		AllData = new List<MyPreBuildData>();
 		CheckBeltData = new Dictionary<int, Belt>();
 		Name = string.Empty;
-		GammData = new List<Gamm>();
 		Img = new PlanetFactoryImg();
 	}
 	public FactoryData()
@@ -105,21 +64,25 @@ public class FactoryData
 
 	public void Clear()
     {
-		AssemblerDate.Clear();
-		InserterData.Clear();
-		BeltData.Clear();
-		PowerData.Clear();
-		PowerNodeData.Clear();
-		StationData.Clear();
-		LabData.Clear();
 		ItemNeed.Clear();
 		AllData.Clear();
 		CheckBeltData.Clear();
-		GammData.Clear();
 	}
 
 	public string Name;
 
+	public string GetTypeString(EDataType type)
+    {
+		int t = (int)type;
+		if (t < 10)
+			return "00" + t;
+		else if (t < 100)
+			return "0" + t;
+		else
+			return t.ToString();
+    }
+
+	const int dataVersion = 10000;
 	/// <summary>
 	/// 导出文件
 	/// </summary>
@@ -130,51 +93,22 @@ public class FactoryData
 		{
 			Directory.CreateDirectory(path);
 		}
-		string[] s = new string[Count + 8 + 7];
+		string[] s = new string[Count + 9 + 8];
 		//文件名
-		s[0] = Name;
-		s[1] = GetItemCountData(true);
-		s[2] = AssemblerDate.Count.ToString();
+		s[0] = dataVersion.ToString();
+		s[1] = Name;
+		s[2] = GetItemCountData(true);
 		int i = 3;
-		foreach (var d in AssemblerDate)
-		{
-			s[i++] = d.GetData();
-		}
-		s[i++] = PowerData.Count.ToString();
-		foreach (var d in PowerData)
-		{
-			s[i++] = d.GetData();
-		}
-		s[i++] = PowerNodeData.Count.ToString();
-		foreach (var d in PowerNodeData)
-		{
-			s[i++] = d.GetData();
-		}
-		s[i++] = InserterData.Count.ToString();
-		foreach (var d in InserterData)
-		{
-			s[i++] = d.GetData();
-		}
-		s[i++] = BeltData.Count.ToString();
-		foreach (var d in BeltData)
-		{
-			s[i++] = d.GetData();
-		}
-		s[i++] = StationData.Count.ToString();
-		foreach (var d in StationData)
-		{
-			s[i++] = d.GetData();
-		}
-		s[i++] = LabData.Count.ToString();
-		foreach (var d in LabData)
-		{
-			s[i++] = d.GetData();
-		}
-		s[i++] = GammData.Count.ToString();
-		foreach (var d in GammData)
-		{
-			s[i++] = d.GetData();
-		}
+		for(; i < 10; i++)
+        {
+			s[i] = string.Empty;
+        }
+		foreach(var d in AllData)
+        {
+			string temp = GetTypeString(d.type);
+			temp += "|" + d.GetData();
+			s[i++] = temp;
+        }
 		for (; i < s.Length; i++)
 		{
 			s[i] = string.Empty;
@@ -201,132 +135,196 @@ public class FactoryData
 			if (File.Exists(FileName))
 			{
 				string[] s = File.ReadAllLines(FileName);
-				try
-				{
-					if (s.Length > 7)
-					{
-						Name = s[0];
-						AddItemCount(s[1]);
-						int c = int.Parse(s[2]);
-						int i = 3;
-						for (int j = 0; j < c; j++)
-						{
-							var temp = new Assembler(s[i + j]);
-							AssemblerDate.Add(temp);
-							AllData.Add(temp);
-						}
-						i += c;
-						c = int.Parse(s[i]);
-						i++;
+				if(int.TryParse(s[0],out int version))
+                {
+                    if (version == dataVersion)
+                    {
+                        try
+                        {
+							Name = s[1];
+							AddItemCount(s[2]);
+							int i = 11;
+                            for (; i < s.Length; i++)
+                            {
+								if (s[i].Length > 3)
+								{
+									string type = s[i].Substring(0, 3);
+									string data = s[i].Substring(4);
+									if (int.TryParse(type, out int t))
+									{
+										EDataType et = (EDataType)t;
+										switch (et)
+										{
+											case EDataType.Assembler:
+												AllData.Add(new Assembler(data));
+												break;
+											case EDataType.Belt:
+												AllData.Add(new Belt(data));
+												break;
+											case EDataType.Inserter:
+												AllData.Add(new Inserter(data));
+												break;
+											case EDataType.Lab:
+												AllData.Add(new Lab(data));
+												break;
+											case EDataType.Splitter:
+												AllData.Add(new Splitter(data));
+												break;
+											case EDataType.Station:
+												AllData.Add(new Station(data));
+												break;
+											case EDataType.Gamm:
+												AllData.Add(new Gamm(data));
+												break;
+											case EDataType.PowGen:
+												AllData.Add(new Assembler(data) { type=EDataType.PowGen});
 
-						for (int j = 0; j < c; j++)
-						{
-							var temp = new Assembler(s[i + j]);
-							PowerData.Add(temp);
-							AllData.Add(temp);
-						}
-						i += c;
-						c = int.Parse(s[i]);
-						i++;
+												break;
 
-						for (int j = 0; j < c; j++)
-						{
-							var temp = new Assembler(s[i + j]);
-							PowerNodeData.Add(temp);
-							AllData.Add(temp);
-						}
-						i += c;
-						c = int.Parse(s[i]);
-						i++;
-
-						for (int j = 0; j < c; j++)
-						{
-							var temp = new Inserter(s[i + j]);
-							InserterData.Add(temp);
-							AllData.Add(temp);
-						}
-						i += c;
-						c = int.Parse(s[i]);
-						i++;
-
-						for (int j = 0; j < c; j++)
-						{
-							var temp = new Belt(s[i + j]);
-							BeltData.Add(temp);
-							AllData.Add(temp);
-						}
-						i += c;
-
-						if (s.Length < i + 1)
-							return;
-						c = int.Parse(s[i]);
-						i++;
-						if (s.Length < i + c)
-							return;
-						for (int j = 0; j < c; j++)
-						{
-							Station temp = new Station(s[i + j]);
-							if (temp.isStation)
-							{
-								StationData.Add(temp);
-								AllData.Add(temp);
-							}
-						}
-						i += c;
-						if (s.Length < i + 1)
-							return;
-						if (s[i].Length < 1)
-							return;
-						c = int.Parse(s[i]);
-						i++;
-						if (s.Length < i + c)
-							return;
-						for (int j = 0; j < c; j++)
-						{
-							Lab temp = new Lab(s[i + j]);
-							if (temp.isLab)
-							{
-								LabData.Add(temp);
-								AllData.Add(temp);
-							}
-						}
-						i += c;
-
-						if (s.Length < i + 1)
-							return;
-						if (s[i].Length < 1)
-							return;
-						c = int.Parse(s[i]);
-						i++;
-						if (s.Length < i + c)
-							return;
-						for (int j = 0; j < c; j++)
-						{
-							Gamm temp = new Gamm(s[i + j]);
-							if (temp.isGamm)
-							{
-								GammData.Add(temp);
-								AllData.Add(temp);
-							}
-						}
-						i += c;
-
-
-						if (Count > 0 && ItemNeed.Count == 0)
-						{
+										}
+									}
+								}
+                            }
 							InitItemNeed();
-							Export();
+						}
+						catch (Exception e)
+						{
+							Debug.LogError("ParseError");
+							Debug.LogError(e.Message);
+							Name = Name + "【Error!】";
+							Clear();
 						}
 					}
-				}
-				catch (Exception e)
-				{
-					Debug.LogError("ParseError");
-					Debug.LogError(e.Message);
-					Name = Name + "【Error!】";
-					Clear();
-				}
+                }
+                else
+                {
+					OldImport(s);
+                }
+
 			}
+		}
+	}
+
+	[Obsolete("老版本的数据读取")]
+	public  void OldImport(string[] s) 
+	{
+		try
+		{
+			if (s.Length > 7)
+			{
+				Name = s[0];
+				AddItemCount(s[1]);
+				int c = int.Parse(s[2]);
+				int i = 3;
+				for (int j = 0; j < c; j++)
+				{
+					var temp = new Assembler(s[i + j]);
+					AllData.Add(temp);
+				}
+				i += c;
+				c = int.Parse(s[i]);
+				i++;
+
+				for (int j = 0; j < c; j++)
+				{
+					var temp = new Assembler(s[i + j]);
+					temp.type = EDataType.PowGen;
+					AllData.Add(temp);
+				}
+				i += c;
+				c = int.Parse(s[i]);
+				i++;
+
+				for (int j = 0; j < c; j++)
+				{
+					var temp = new Assembler(s[i + j]);
+					AllData.Add(temp);
+				}
+				i += c;
+				c = int.Parse(s[i]);
+				i++;
+
+				for (int j = 0; j < c; j++)
+				{
+					var temp = new Inserter(s[i + j]);
+					AllData.Add(temp);
+				}
+				i += c;
+				c = int.Parse(s[i]);
+				i++;
+
+				for (int j = 0; j < c; j++)
+				{
+					var temp = new Belt(s[i + j]);
+					AllData.Add(temp);
+				}
+				i += c;
+
+				if (s.Length < i + 1)
+					return;
+				c = int.Parse(s[i]);
+				i++;
+				if (s.Length < i + c)
+					return;
+				for (int j = 0; j < c; j++)
+				{
+					Station temp = new Station(s[i + j]);
+					if (temp.isStation)
+					{
+						AllData.Add(temp);
+					}
+				}
+				i += c;
+				if (s.Length < i + 1)
+					return;
+				if (s[i].Length < 1)
+					return;
+				c = int.Parse(s[i]);
+				i++;
+				if (s.Length < i + c)
+					return;
+				for (int j = 0; j < c; j++)
+				{
+					Lab temp = new Lab(s[i + j]);
+					if (temp.isLab)
+					{
+						AllData.Add(temp);
+					}
+				}
+				i += c;
+
+				if (s.Length < i + 1)
+					return;
+				if (s[i].Length < 1)
+					return;
+				c = int.Parse(s[i]);
+				i++;
+				if (s.Length < i + c)
+					return;
+				for (int j = 0; j < c; j++)
+				{
+					Gamm temp = new Gamm(s[i + j]);
+					if (temp.isGamm)
+					{
+						AllData.Add(temp);
+					}
+				}
+				i += c;
+
+				if (Count > 0 && ItemNeed.Count == 0)
+				{
+					InitItemNeed();
+					
+				}
+				Export();
+			}
+		}
+		catch (Exception e)
+		{
+			Debug.LogError("ParseError");
+			Debug.LogError(e.Message);
+			Name = Name + "【Error!】";
+			Clear();
 		}
 	}
 
@@ -349,174 +347,118 @@ public class FactoryData
 	/// <param name="factory">工厂数据</param>
 	public void CopyDate(PlanetFactory factory)
 	{
-		HashSet<int> eidSet = new HashSet<int>();
 		Clear();
 		this.factory = factory;
 		var fSystem = factory.factorySystem;
-		for (int i = 1; i < fSystem.assemblerCursor; i++)
-		{
-			var ap = fSystem.assemblerPool[i];
-			var ed = factory.entityPool[ap.entityId];
-			if (!TryAddData(ed, eidSet))
-				continue;
-			var temp = new Assembler(GetPreDate(ap, ed));
-			temp.oldEId = ap.entityId;
-			AssemblerDate.Add(temp);
-			AllData.Add(temp);
-			AddItemCount(ed.protoId);
-		}
-
-		for (int i = 1; i < fSystem.ejectorCursor; i++)
-		{
-			var ap = fSystem.ejectorPool[i];
-			var ed = factory.entityPool[ap.entityId];
-			if (!TryAddData(ed, eidSet))
-				continue;
-			var temp = new Assembler(GetPreDate(ap, ed));
-			temp.oldEId = ap.entityId;
-			AssemblerDate.Add(temp);
-			AllData.Add(temp);
-			AddItemCount(ed.protoId);
-		}
-		for (int i = 1; i < fSystem.siloCursor; i++)
-		{
-			var ap = fSystem.siloPool[i];
-			var ed = factory.entityPool[ap.entityId];
-			if (!TryAddData(ed, eidSet))
-				continue;
-			var temp = new Assembler(GetPreDate(ap, ed));
-			temp.oldEId = ap.entityId;
-			AssemblerDate.Add(temp);
-			AllData.Add(temp);
-			AddItemCount(ed.protoId);
-		}
-		for (int i = 1; i < factory.powerSystem.genCursor; i++)
-		{
-			var ap = factory.powerSystem.genPool[i];
-			var ed = factory.entityPool[ap.entityId];
-			if (!TryAddData(ed, eidSet))
-				continue;
-			if (ap.gamma)
-			{
-				int c0 = factory.entityConnPool[16 * ap.entityId];
-				int c1 = factory.entityConnPool[16 * ap.entityId+1];
-				var temp = new Gamm(GetPreDate(ap, ed),ap.productId,c0,c1);
-				temp.oldEId = ap.entityId;
-				GammData.Add(temp);
-				AllData.Add(temp);
-				AddItemCount(ed.protoId);
-			}
-			else
-			{
-				var temp = new Assembler(GetPreDate(ap, ed));
-				temp.oldEId = ap.entityId;
-				PowerData.Add(temp);
-				AllData.Add(temp);
-				AddItemCount(ed.protoId);
-			}
-		}
-		for (int i = 1; i < factory.powerSystem.nodeCursor; i++)
-		{
-			var ap = factory.powerSystem.nodePool[i];
-			var ed = factory.entityPool[ap.entityId];
-			if (!TryAddData(ed, eidSet))
-				continue;
-			var temp = new Assembler(GetPreDate(ap, ed));
-			temp.oldEId = ap.entityId;
-			PowerNodeData.Add(temp);
-			AllData.Add(temp);
-			AddItemCount(ed.protoId);
-		}
-		for (int i = 1; i < fSystem.inserterCursor; i++)
-		{
-			var ip = fSystem.inserterPool[i];
-			var eid = ip.entityId;
-			var ed = factory.entityPool[eid];
-			if (ed.protoId == 0)
-				continue;
-			InserterComponent temp = ip;
-			var target = factory.entityPool[temp.insertTarget];
-			var pick = factory.entityPool[temp.pickTarget];
-			int outConn = factory.entityConnPool[eid * 16];
-			int inConn = factory.entityConnPool[eid * 16 + 1];
-			var tempP = new Inserter(GetPreDate(temp, ed),ip,outConn,inConn);
-			InserterData.Add(tempP);
-			AllData.Add(tempP);
-			AddItemCount(ed.protoId);
-		}
-		for (int i = 1; i < factory.cargoTraffic.beltCursor; i++)
-		{
-			var ap = factory.cargoTraffic.beltPool[i];
-			var eId = ap.entityId;
-			var ed = factory.entityPool[eId];
-			if (ed.protoId == 0)
-				continue;
-			bool flag2;
-			int slot;
-			factory.ReadObjectConn(eId, 0, out flag2, out int out1, out slot);
-			factory.ReadObjectConn(eId, 1, out flag2, out int in1, out slot);
-			factory.ReadObjectConn(eId, 2, out flag2, out int in2, out slot);
-			factory.ReadObjectConn(eId, 3, out flag2, out int in3, out slot);
-			var temp = new Belt(GetPreDate(ap, ed), ap, out1, in1, in2, in3);
-			if (out1 == 0)
-            {
-				CheckBeltData.Add(eId, temp);
-            }
-			temp.beltOut= EIdIsBeltId(out1);
-			temp.beltIn1= EIdIsBeltId(in1);
-			temp.beltIn2= EIdIsBeltId(in2);
-			temp.beltIn3 = EIdIsBeltId(in3);
+		for(int i = 1; i < factory.entityCursor; i++)
+        {
 			
-			
-			temp.oldEId = eId;
-			BeltData.Add(temp);
-			AllData.Add(temp);
-			AddItemCount(ed.protoId);
-		}
-		for (int i = 1; i < factory.transport.stationCursor; i++)
-		{
-			var ap = factory.transport.stationPool[i];
-			if (ap != null)
+			var ed = factory.entityPool[i];
+			if (ed.protoId > 0)
 			{
-				var eId = ap.entityId;
-				var ed = factory.entityPool[eId];
-				if (ed.protoId == 0)
-					continue;
-				var temp = new Station(GetPreDate(ap, ed), ap);
-				temp.oldEId = eId;
-				StationData.Add(temp);
-				AllData.Add(temp);
-				AddItemCount(ed.protoId);
-			}
-		}
-		HashSet<int> labIdSet = new HashSet<int>();
-		for (int i = 1; i < factory.factorySystem.labCursor; i++)
-		{
-			var ap = factory.factorySystem.labPool[i];
-			var eId = ap.entityId;
-			var ed = factory.entityPool[eId];
-			if (ed.protoId == 0)
-				continue;
-			if (labIdSet.Contains(i))
-				continue;
-			int nextId = i;
-			do
-			{
-				ap = factory.factorySystem.labPool[nextId];
-				nextId = ap.nextLabId;
-				labIdSet.Add(ap.id);
-				if (nextId == 0)
+				MyPreBuildData temp = null;
+				if (ed.assemblerId > 0)
 				{
-					break;
+					var ap = fSystem.assemblerPool[ed.assemblerId];
+					temp = new Assembler(GetPreDate(ap, ed));
+				}
+				else if (ed.ejectorId > 0)
+                {
+					var ap = fSystem.ejectorPool[ed.ejectorId];
+					temp = new Assembler(GetPreDate(ed));
+				}
+				else if (ed.siloId > 0)
+                {
+					var ap = fSystem.siloPool[ed.siloId];
+					temp = new Assembler(GetPreDate(ed));
+				}
+				else if (ed.powerGenId > 0)
+                {
+					var ap = factory.powerSystem.genPool[ed.powerGenId];
+					if (ap.gamma)
+                    {
+						int c0 = factory.entityConnPool[16 * ap.entityId];
+						int c1 = factory.entityConnPool[16 * ap.entityId + 1];
+						temp = new Gamm(GetPreDate(ed), ap.productId, c0, c1);
+					}
+                    else
+                    {
+						temp = new Assembler(GetPreDate(ed));
+					}
+					temp.type = EDataType.PowGen;
+
+				}
+				else if (ed.powerNodeId > 0)
+                {
+					var ap = factory.powerSystem.nodePool[ed.powerNodeId];
+					temp = new Assembler(GetPreDate(ed));
+				}
+				else if (ed.splitterId > 0)
+                {
+					var ap = factory.cargoTraffic.splitterPool[ed.splitterId];
+					int c0 = factory.entityConnPool[16 * ap.entityId];
+					int c1 = factory.entityConnPool[16 * ap.entityId + 1];
+					int c2 = factory.entityConnPool[16 * ap.entityId + 2];
+					int c3 = factory.entityConnPool[16 * ap.entityId + 3];
+					temp = new Splitter(GetPreDate(ed), c0, c1, c2, c3);
+				}
+				else if (ed.labId > 0)
+                {
+					var ap = factory.factorySystem.labPool[ed.labId];
+                    if (ap.nextLabId == 0)
+                    {
+						temp = new Lab(GetPreDate(ed), ap.researchMode, ap.recipeId, ap.techId);
+					}
+				}
+				else if (ed.stationId > 0)
+                {
+					var ap = factory.transport.stationPool[ed.stationId];
+                    if (ap != null)
+                    {
+						if (ed.protoId == 0)
+							continue;
+						temp = new Station(GetPreDate(ed), ap);
+					}
+				}
+				else if (ed.inserterId > 0)
+                {
+					var ip= fSystem.inserterPool[ed.inserterId];
+					InserterComponent tempp = ip;
+					var target = factory.entityPool[tempp.insertTarget];
+					var pick = factory.entityPool[tempp.pickTarget];
+					int outConn = factory.entityConnPool[i * 16];
+					int inConn = factory.entityConnPool[i * 16 + 1];
+					temp = new Inserter(GetPreDate(tempp, ed), ip, outConn, inConn);
+				}
+				else if (ed.beltId > 0)
+                {
+					var ap = factory.cargoTraffic.beltPool[ed.beltId];
+					bool flag2;
+					int slot;
+					factory.ReadObjectConn(i, 0, out flag2, out int out1, out slot);
+					factory.ReadObjectConn(i, 1, out flag2, out int in1, out slot);
+					factory.ReadObjectConn(i, 2, out flag2, out int in2, out slot);
+					factory.ReadObjectConn(i, 3, out flag2, out int in3, out slot);
+					temp = new Belt(GetPreDate(ap, ed), ap, out1, in1, in2, in3);
+					Belt tBelt = (Belt)temp;
+					if (out1 == 0)
+					{
+						CheckBeltData.Add(i, tBelt);
+					}
+
+					tBelt.beltOut = EIdIsBeltId(out1);
+					tBelt.beltIn1 = EIdIsBeltId(in1);
+					tBelt.beltIn2 = EIdIsBeltId(in2);
+					tBelt.beltIn3 = EIdIsBeltId(in3);
 				}
 
-			} while (true);
-			var temp = new Lab(GetPreDate(ap, ed), ap.researchMode, ap.recipeId, ap.techId);
-			temp.oldEId = eId;
-			temp.isLab = true;
-			LabData.Add(temp);
-			AllData.Add(temp);
-			AddItemCount(ed.protoId);
+				if (temp != null)
+				{
+					temp.oldEId = i;
+					AllData.Add(temp);
+					AddItemCount(ed.protoId);
+				}
+			}
 		}
 	}
 
@@ -686,7 +628,22 @@ public class FactoryData
 
 	}
 
-
+	/// <summary>
+	/// 获取建筑主要数据
+	/// </summary>
+	/// <param name="ed">实体数据</param>
+	/// <returns></returns>
+	static PrebuildData GetPreDate(EntityData ed)
+	{
+		PrebuildData prebuild = default(PrebuildData);
+		prebuild.protoId = (short)ed.protoId;
+		prebuild.modelIndex = (short)ed.modelIndex;
+		prebuild.pos = ed.pos;
+		prebuild.pos2 = VectorLF3.zero;
+		prebuild.rot = ed.rot;
+		prebuild.rot2 = Quaternion.identity;
+		return prebuild;
+	}
 	/// <summary>
 	/// 获取工作台主要数据
 	/// </summary>
@@ -706,41 +663,6 @@ public class FactoryData
 		return prebuild;
 	}
 
-	/// <summary>
-	/// 获取炮台主要数据
-	/// </summary>
-	/// <param name="ac">炮台数据</param>
-	/// <param name="ed">实体数据</param>
-	/// <returns></returns>
-	static PrebuildData GetPreDate(EjectorComponent ac, EntityData ed)
-	{
-		PrebuildData prebuild = default(PrebuildData);
-		prebuild.protoId = (short)ed.protoId;
-		prebuild.modelIndex = (short)ed.modelIndex;
-		prebuild.pos = ed.pos;
-		prebuild.pos2 = VectorLF3.zero;
-		prebuild.rot = ed.rot;
-		prebuild.rot2 = Quaternion.identity;
-		return prebuild;
-	}
-
-	/// <summary>
-	/// 获取发射井主要数据
-	/// </summary>
-	/// <param name="ac">发射井数据</param>
-	/// <param name="ed">实体数据</param>
-	/// <returns></returns>
-	static PrebuildData GetPreDate(SiloComponent ac, EntityData ed)
-	{
-		PrebuildData prebuild = default(PrebuildData);
-		prebuild.protoId = (short)ed.protoId;
-		prebuild.modelIndex = (short)ed.modelIndex;
-		prebuild.pos = ed.pos;
-		prebuild.pos2 = VectorLF3.zero;
-		prebuild.rot = ed.rot;
-		prebuild.rot2 = Quaternion.identity;
-		return prebuild;
-	}
 	static PrebuildData GetPreDate(InserterComponent ic, EntityData ed)
 	{
 		PrebuildData prebuild = default(PrebuildData);
@@ -756,50 +678,6 @@ public class FactoryData
 		return prebuild;
 	}
 	static PrebuildData GetPreDate(BeltComponent bc, EntityData ed)
-	{
-		PrebuildData prebuild = default(PrebuildData);
-		prebuild.protoId = (short)ed.protoId;
-		prebuild.modelIndex = (short)ed.modelIndex;
-		prebuild.pos = ed.pos;
-		prebuild.pos2 = VectorLF3.zero;
-		prebuild.rot = ed.rot;
-		prebuild.rot2 = Quaternion.identity;
-		return prebuild;
-	}
-	static PrebuildData GetPreDate(PowerGeneratorComponent bc, EntityData ed)
-	{
-		PrebuildData prebuild = default(PrebuildData);
-		prebuild.protoId = (short)ed.protoId;
-		prebuild.modelIndex = (short)ed.modelIndex;
-		prebuild.pos = ed.pos;
-		prebuild.pos2 = VectorLF3.zero;
-		prebuild.rot = ed.rot;
-		prebuild.rot2 = Quaternion.identity;
-		return prebuild;
-	}
-	static PrebuildData GetPreDate(PowerNodeComponent bc, EntityData ed)
-	{
-		PrebuildData prebuild = default(PrebuildData);
-		prebuild.protoId = (short)ed.protoId;
-		prebuild.modelIndex = (short)ed.modelIndex;
-		prebuild.pos = ed.pos;
-		prebuild.pos2 = VectorLF3.zero;
-		prebuild.rot = ed.rot;
-		prebuild.rot2 = Quaternion.identity;
-		return prebuild;
-	}
-	static PrebuildData GetPreDate(StationComponent bc, EntityData ed)
-	{
-		PrebuildData prebuild = default(PrebuildData);
-		prebuild.protoId = (short)ed.protoId;
-		prebuild.modelIndex = (short)ed.modelIndex;
-		prebuild.pos = ed.pos;
-		prebuild.pos2 = VectorLF3.zero;
-		prebuild.rot = ed.rot;
-		prebuild.rot2 = Quaternion.identity;
-		return prebuild;
-	}
-	static PrebuildData GetPreDate(LabComponent bc, EntityData ed)
 	{
 		PrebuildData prebuild = default(PrebuildData);
 		prebuild.protoId = (short)ed.protoId;

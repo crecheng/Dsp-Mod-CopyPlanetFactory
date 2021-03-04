@@ -15,6 +15,7 @@ public class Inserter : MyPreBuildData
     {
         pd = prebuild;
         isInserter = true;
+		type = EDataType.Inserter;
         this.inserter = inserter;
 		outConn = Out;
 		inConn = In;
@@ -25,6 +26,7 @@ public class Inserter : MyPreBuildData
 		pd = default;
 		inserter = default;
 		isInserter = true;
+		type = EDataType.Inserter;
 		string[] s = data.Split(',');
 		if (s.Length > 20)
 		{

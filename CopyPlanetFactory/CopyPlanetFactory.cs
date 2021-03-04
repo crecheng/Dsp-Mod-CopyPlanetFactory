@@ -11,7 +11,8 @@ using UnityEngine;
 public class CopyPlanetFactory : BaseUnityPlugin
 {
 	
-	public const string Version = "1.6.7";
+	public const string Version = "1.7.0";
+	public const bool isDebug = false;
 	void Start()
 	{
 		Harmony.CreateAndPatchAll(typeof(CopyPlanetFactory), null);
@@ -89,7 +90,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
     }
 
 
-
 	static int ImgX = 0;
 	static int ImgY = 0;
 	void OnGUI()
@@ -100,7 +100,10 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			DataImgLabel();
 
 		}
-		//GUI.Label(new Rect(100, 100, 300, 700), Buginfo);
+		if (isDebug)
+		{
+			GUI.Label(new Rect(100, 100, 300, 700), Buginfo);
+		}
 		if (isShow)
 		{
 			if (isShowItem)
@@ -534,11 +537,13 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				var ed = player.factory.entityPool[ce.id];
 				var bd = player.factory.cargoTraffic.beltPool[inid];
 				var sid = ce.stationId;
-				var ejId = ce.powerGenId;
+				var ejId = ce.splitterId;
                 Buginfo = "eid:"+ce.id.ToString();
 				Buginfo += "\npos:" + ed.pos;
 				Buginfo += "\nrot:" + ed.rot;
-				Buginfo += "\npowerGenId:" + ejId;
+				Buginfo += "\nsplitterId:" + ejId;
+				Buginfo += "\nmodelIndex:" + ce.modelIndex;
+				Buginfo += "\nmodelid:" + ce.modelId;
 				//var eul = ed.rot.eulerAngles;
 				//Buginfo += "\nrot.eulerAngles:" + eul;
 				//Buginfo += "\nrot.eulerAngles.x:" + eul.x;
@@ -556,7 +561,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				//
 				//}
 				Buginfo += "\nbId:" + ce.beltId;
-				Buginfo += "\ncoon:";
+				Buginfo += "\ncoon:\n";
 				if (ce.id >0)
 				{
 					for(int i = 0; i < 16; i++)
@@ -564,6 +569,15 @@ public class CopyPlanetFactory : BaseUnityPlugin
 						int conn = player.planetData.factory.entityConnPool[ce.id * 16 + i];
 						player.planetData.factory.ReadObjectConn(ce.id, i, out bool isO, out int other, out int slot);
 						Buginfo +=i+":"+ conn + "," + isO + "," + other + "," + slot+"\n";
+                        if (other > 0)
+                        {
+							for (int j = 0; j < 16; j++)
+							{
+								int conn1 = player.planetData.factory.entityConnPool[other * 16 + j];
+								player.planetData.factory.ReadObjectConn(other, i, out bool isO1, out int other1, out int slot1);
+								Buginfo += "--"+j + ":" + conn1 + "," + isO1 + "," + other1 + "," + slot1 + "\n";
+							}
+						}
 				    }
 				}
                 if (ejId > 0)

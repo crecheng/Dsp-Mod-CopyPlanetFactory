@@ -17,6 +17,7 @@ public class Belt : MyPreBuildData
 		pd = prebuild;
 		Init();
 		this.belt = belt;
+		type = EDataType.Belt;
 		beltOut = out1;
 		beltIn1 = in1;
 		beltIn2 = in2;
@@ -28,6 +29,7 @@ public class Belt : MyPreBuildData
 	{
 		pd = default;
 		isBelt = true;
+		type = EDataType.Belt;
 		string[] s = data.Split(',');
 		if (s.Length > 13)
 		{

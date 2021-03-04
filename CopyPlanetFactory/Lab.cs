@@ -14,6 +14,7 @@ public class Lab:MyPreBuildData
 		Init();
 		pd = prebuild;
 		isLab = true;
+		type = EDataType.Lab;
 		isResearchMode = isResMode;
 		LabRecpId = RecpId;
 		LabTech = TachId;
@@ -26,6 +27,7 @@ public class Lab:MyPreBuildData
 		if (s.Length > 10)
 		{
 			isLab = true;
+			type = EDataType.Lab;
 			pd.protoId = short.Parse(s[0]);
 			pd.modelIndex = short.Parse(s[1]);
 			pd.pos = new Vector3(float.Parse(s[2]), float.Parse(s[3]), float.Parse(s[4]));

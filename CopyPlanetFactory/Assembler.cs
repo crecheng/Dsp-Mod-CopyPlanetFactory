@@ -13,12 +13,13 @@ public class Assembler : MyPreBuildData
 	public Assembler(PrebuildData prebuild)
     {
 		pd = prebuild;
-		
-    }
+		type = EDataType.Assembler;
+	}
 
 	public Assembler(string data)
     {
 		pd = default;
+		type = EDataType.Assembler;
 		string[] s = data.Split(',');
 		pd.protoId = short.Parse(s[0]);
 		pd.modelIndex = short.Parse(s[1]);
