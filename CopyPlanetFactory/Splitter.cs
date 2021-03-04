@@ -79,10 +79,8 @@ public class Splitter : MyPreBuildData
             {
                 int beltEid = BeltEIdMap[Belt0];
                 int beltId = factory.entityPool[beltEid].beltId;
-                factory.WriteObjectConn(beltEid, 0, !isOut0, newEId, 0);
-                factory.WriteObjectConn(beltEid, 1, !isOut0, newEId, 0);
-                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 0, !isOut0);
-                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 0, !isOut0);
+                factory.WriteObjectConn(newEId,0, isOut0,beltEid, isOut0 ? 1 : 0);
+                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 0, isOut0);
             }
             else
             {
@@ -92,10 +90,8 @@ public class Splitter : MyPreBuildData
             {
                 int beltEid = BeltEIdMap[Belt1];
                 int beltId = factory.entityPool[beltEid].beltId;
-                factory.WriteObjectConn(beltEid, 0, !isOut1, newEId, 1);
-                factory.WriteObjectConn(beltEid, 1, !isOut1, newEId, 1);
-                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 1, !isOut1);
-                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 1, !isOut1);
+                factory.WriteObjectConn(newEId, 1, isOut1, beltEid, isOut1 ? 1 : 0);
+                factory.cargoTraffic.ConnectToSplitter(spId, beltId,1, isOut1);
             }
             else
             {
@@ -105,10 +101,8 @@ public class Splitter : MyPreBuildData
             {
                 int beltEid = BeltEIdMap[Belt2];
                 int beltId = factory.entityPool[beltEid].beltId;
-                factory.WriteObjectConn(beltEid, 0, !isOut2, newEId, 2);
-                factory.WriteObjectConn(beltEid, 1, !isOut2, newEId, 2);
-                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 2, !isOut2);
-                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 2, !isOut2);
+                factory.WriteObjectConn(newEId, 2, isOut2, beltEid, isOut2 ? 1 : 0);
+                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 2, isOut2);
             }
             else
             {
@@ -118,10 +112,8 @@ public class Splitter : MyPreBuildData
             {
                 int beltEid = BeltEIdMap[Belt3];
                 int beltId = factory.entityPool[beltEid].beltId;
-                factory.WriteObjectConn(beltEid, 0, !isOut3, newEId, 3);
-                factory.WriteObjectConn(beltEid, 1, !isOut3, newEId, 3);
-                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 3, !isOut3);
-                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 3, !isOut3);
+                factory.WriteObjectConn(newEId, 3, isOut3, beltEid, isOut3 ? 1 : 0);
+                factory.cargoTraffic.ConnectToSplitter(spId, beltId,3, isOut3);
             }
             else
             {

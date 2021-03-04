@@ -62,3 +62,6 @@ Divided by the equator, north and south, left and right
 
 1. 先安装 BepInEx框架
 3. 将CopyPlanetFactory.dll拖到 steamapps/common/Dyson Sphere Program/BepInEx/plugins文件夹内
+
+### 更新
+1.7.1 更新数据格式，加入复制分馏塔

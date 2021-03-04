@@ -14,6 +14,8 @@ public enum EDataType
     Station,
     Lab,
     Splitter,
-    PowGen
+    PowGen,
+    Fractionate,
+    PowerExchanger
 }
 

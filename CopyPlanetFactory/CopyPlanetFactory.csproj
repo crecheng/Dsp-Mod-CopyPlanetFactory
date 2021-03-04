@@ -67,12 +67,14 @@
     <Compile Include="EDataType.cs" />
     <Compile Include="ERotationType.cs" />
     <Compile Include="FactoryData.cs" />
+    <Compile Include="Fractionate.cs" />
     <Compile Include="Gamm.cs" />
     <Compile Include="Inserter.cs" />
     <Compile Include="Lab.cs" />
     <Compile Include="MyPreBuildData.cs" />
     <Compile Include="FactoryTask.cs" />
     <Compile Include="PlanetFactoryImg.cs" />
+    <Compile Include="PowerExchanger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Splitter.cs" />
     <Compile Include="ST.cs" />

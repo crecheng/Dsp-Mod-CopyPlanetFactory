@@ -33,6 +33,7 @@ public class Station:MyPreBuildData
     {
 		pd = prebuild;
 		isStation = true;
+		isNeedConn = true;
 		type = EDataType.Station;
 	}
 
@@ -43,6 +44,7 @@ public class Station:MyPreBuildData
 		if (s.Length > 9)
 		{
 			isStation = true;
+			isNeedConn = true;
 			type = EDataType.Station;
 			pd.protoId = short.Parse(s[0]);
 			pd.modelIndex = short.Parse(s[1]);

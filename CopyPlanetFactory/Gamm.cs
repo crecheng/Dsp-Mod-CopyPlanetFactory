@@ -27,6 +27,7 @@ public class Gamm : MyPreBuildData
         if (s.Length > 10)
         {
             isGamm = true;
+            isNeedConn = true;
             type = EDataType.Gamm;
             pd.protoId = short.Parse(s[0]);
             pd.modelIndex = short.Parse(s[1]);

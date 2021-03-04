@@ -11,7 +11,7 @@ using UnityEngine;
 public class CopyPlanetFactory : BaseUnityPlugin
 {
 	
-	public const string Version = "1.7.0";
+	public const string Version = "1.7.1";
 	public const bool isDebug = false;
 	void Start()
 	{
@@ -527,69 +527,82 @@ public class CopyPlanetFactory : BaseUnityPlugin
 					$"\n暂时忽略地形碰撞检测\n";
 			}
 		}
-        if (CheckData())
-        {
-			Player player = GameMain.data.mainPlayer;
-            if (player.controller != null && player.controller.cmd.raycast != null)
-            {
-				var ce = player.controller.cmd.raycast.castEntity;
-				int inid = ce.beltId;
-				var ed = player.factory.entityPool[ce.id];
-				var bd = player.factory.cargoTraffic.beltPool[inid];
-				var sid = ce.stationId;
-				var ejId = ce.splitterId;
-                Buginfo = "eid:"+ce.id.ToString();
-				Buginfo += "\npos:" + ed.pos;
-				Buginfo += "\nrot:" + ed.rot;
-				Buginfo += "\nsplitterId:" + ejId;
-				Buginfo += "\nmodelIndex:" + ce.modelIndex;
-				Buginfo += "\nmodelid:" + ce.modelId;
-				//var eul = ed.rot.eulerAngles;
-				//Buginfo += "\nrot.eulerAngles:" + eul;
-				//Buginfo += "\nrot.eulerAngles.x:" + eul.x;
-				//if (ce.inserterId > 0)
-				//{
-				//	var d = player.factory.factorySystem.inserterPool[ce.inserterId];
-				//	Buginfo += "\npos2:" + d.pos2;
-				//	Buginfo += "\nrot2:" + d.rot2;
-				//}
-				//if (ce.labId > 0)
-				//{
-				//	var d = player.factory.factorySystem.labPool[ce.labId];
-				//	Buginfo += "\ntimespeed:" + d.timeSpend;
-				//	Buginfo += "\ntime:" + d.time;
-				//
-				//}
-				Buginfo += "\nbId:" + ce.beltId;
-				Buginfo += "\ncoon:\n";
-				if (ce.id >0)
+		if (isDebug)
+		{
+			if (CheckData())
+			{
+				Player player = GameMain.data.mainPlayer;
+				if (player.controller != null && player.controller.cmd.raycast != null)
 				{
-					for(int i = 0; i < 16; i++)
-				    {
-						int conn = player.planetData.factory.entityConnPool[ce.id * 16 + i];
-						player.planetData.factory.ReadObjectConn(ce.id, i, out bool isO, out int other, out int slot);
-						Buginfo +=i+":"+ conn + "," + isO + "," + other + "," + slot+"\n";
-                        if (other > 0)
-                        {
-							for (int j = 0; j < 16; j++)
+					var ce = player.controller.cmd.raycast.castEntity;
+					int inid = ce.beltId;
+					var ed = player.factory.entityPool[ce.id];
+					var bd = player.factory.cargoTraffic.beltPool[inid];
+					var sid = ce.stationId;
+					var ejId = ce.splitterId;
+					Buginfo = "eid:" + ce.id.ToString();
+					Buginfo += "\npos:" + ed.pos;
+					Buginfo += "\nrot:" + ed.rot;
+					Buginfo += "\nsplitterId:" + ejId;
+					Buginfo += "\nmodelIndex:" + ce.modelIndex;
+					Buginfo += "\nmodelid:" + ce.modelId;
+					//var eul = ed.rot.eulerAngles;
+					//Buginfo += "\nrot.eulerAngles:" + eul;
+					//Buginfo += "\nrot.eulerAngles.x:" + eul.x;
+					//if (ce.inserterId > 0)
+					//{
+					//	var d = player.factory.factorySystem.inserterPool[ce.inserterId];
+					//	Buginfo += "\npos2:" + d.pos2;
+					//	Buginfo += "\nrot2:" + d.rot2;
+					//}
+					//if (ce.labId > 0)
+					//{
+					//	var d = player.factory.factorySystem.labPool[ce.labId];
+					//	Buginfo += "\ntimespeed:" + d.timeSpend;
+					//	Buginfo += "\ntime:" + d.time;
+					//
+					//}
+					Buginfo += "\nbId:" + ce.beltId;
+					Buginfo += "\ncoon:\n";
+					if (ce.id > 0)
+					{
+						for (int i = 0; i < 16; i++)
+						{
+							int conn = player.planetData.factory.entityConnPool[ce.id * 16 + i];
+							if (conn > 0)
 							{
-								int conn1 = player.planetData.factory.entityConnPool[other * 16 + j];
-								player.planetData.factory.ReadObjectConn(other, i, out bool isO1, out int other1, out int slot1);
-								Buginfo += "--"+j + ":" + conn1 + "," + isO1 + "," + other1 + "," + slot1 + "\n";
+								player.planetData.factory.ReadObjectConn(ce.id, i, out bool isO, out int other, out int slot);
+								Buginfo += "【" + i + "】:" + conn + "," + isO + "," + other + "," + slot + "\n";
+								if (other > 0)
+								{
+									for (int j = 0; j < 16; j++)
+									{
+										int conn1 = player.planetData.factory.entityConnPool[other * 16 + j];
+										if (conn1 > 0)
+										{
+											player.planetData.factory.ReadObjectConn(other, j, out bool isO1, out int other1, out int slot1);
+											Buginfo += "--【" + j + "】:" + conn1 + "," + isO1 + "," + other1 + "," + slot1 + "\n";
+										}
+									}
+								}
 							}
 						}
-				    }
-				}
-                if (ejId > 0)
-                {
-					var da = player.factory.powerSystem.genPool[ejId];
+					}
+					if (ejId > 0)
+					{
+						var da = player.factory.cargoTraffic.splitterPool[ejId];
 
-					Buginfo += "\nproductId:" + da.productId;
-				}
 
+						Buginfo += "\na:" + da.beltA;
+						Buginfo += "\nb:" + da.beltB;
+						Buginfo += "\nc:" + da.beltC;
+						Buginfo += "\nd:" + da.beltD;
+					}
+
+
+				}
 
 			}
-
 		}
 	}
 

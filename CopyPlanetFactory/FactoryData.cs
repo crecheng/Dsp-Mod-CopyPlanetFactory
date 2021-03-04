@@ -178,8 +178,11 @@ public class FactoryData
 												break;
 											case EDataType.PowGen:
 												AllData.Add(new Assembler(data) { type=EDataType.PowGen});
-
 												break;
+											case EDataType.Fractionate:
+												AllData.Add(new Fractionate(data));
+												break;
+
 
 										}
 									}
@@ -451,6 +454,14 @@ public class FactoryData
 					tBelt.beltIn2 = EIdIsBeltId(in2);
 					tBelt.beltIn3 = EIdIsBeltId(in3);
 				}
+				else if (ed.fractionateId > 0)
+                {
+					var ap = factory.factorySystem.fractionatePool[ed.fractionateId];
+					int c0 = factory.entityConnPool[i * 16];
+					int c1 = factory.entityConnPool[i * 16+1];
+					int c2 = factory.entityConnPool[i * 16+2];
+					temp = new Fractionate(GetPreDate(ed), c0, c1, c2);
+                }
 
 				if (temp != null)
 				{
