@@ -83,6 +83,8 @@ public class FactoryTask
 	public bool haveInserter;
 	public bool haveBelt;
 	private string itemNeedString;
+	public bool error;
+	public string errorMsg;
 	public ERotationType RotationType { get; private set; }
 	private bool[] area;
 	public int WaitBuildCount
@@ -175,7 +177,7 @@ public class FactoryTask
 		belts = new BeltQueue();
 		WaitNeedItem = new Dictionary<int, int>();
 		WaitItemBuild = new List<MyPreBuildData>();
-
+		error = false;
 		buildS = 0;
 		buildF = 0;
 		buildF1 = 0;
@@ -184,6 +186,7 @@ public class FactoryTask
 		RotationType = ERotationType.Null;
 		playerHaveBeltItem = true;
 		playerHaveInserterItem = true;
+		errorMsg = string.Empty;
 	}
 
 	public void ClearData()
@@ -214,6 +217,8 @@ public class FactoryTask
 		buildF1 = 0;
 		buildF2 = 0;
 		BeltCount = 0;
+		error = false;
+		errorMsg = string.Empty;
 		RotationType = ERotationType.Null;
 		playerHaveBeltItem = true;
 		playerHaveInserterItem = true;
@@ -307,7 +312,16 @@ public class FactoryTask
 		if (CheckData())
 		{
 			planetFactory = factory;
-			Data.CopyDate(factory);
+			Data.CopyData(factory);
+		}
+	}
+
+	public void CopyData(PlanetFactory factory,List<int> id)
+    {
+		if (CheckData())
+		{
+			planetFactory = factory;
+			Data.CopyData(factory,id);
 		}
 	}
 
@@ -465,7 +479,7 @@ public class FactoryTask
 					Debug.LogError(e.Message);
 				}
 			}
-			foreach(var d in Data.AllData)
+			foreach (var d in Data.AllData)
             {
 				if (IsInArea(d.Pos, area))
 				{
@@ -486,6 +500,7 @@ public class FactoryTask
 				}
 
             }
+			
 			if (preIdMap.Count == 0)
 			{
 				TryBuildInserter();
@@ -549,43 +564,51 @@ public class FactoryTask
 		{
 			var d = preIdMap[preId];
 			d.newEId = eid;
-			eIdMap.Add(d.oldEId, eid);
-			//Debug.Log(d.isBelt);
-			bool flag = d.isBelt;
-			
-			if (flag)
-            {
-				BeltCount--;
-				BuildBeltData.Add((Belt)d);
-				BeltEIdMap.Add(d.oldEId, eid);
-				TryBeltConn();
-			}
+			try
+			{
+				eIdMap.Add(d.oldEId, eid);
+				//Debug.Log(d.isBelt);
+				bool flag = d.isBelt;
 
-			d.SetData(planetFactory, eid);
-            if (d.isNeedConn)
+				if (flag)
+				{
+					BeltCount--;
+					BuildBeltData.Add((Belt)d);
+					BeltEIdMap.Add(d.oldEId, eid);
+					TryBeltConn();
+				}
+
+				d.SetData(planetFactory, eid);
+				if (d.isNeedConn)
+				{
+					NeedConnData.Add(d);
+					TryConn();
+				}
+
+				int ejectorId = planetFactory.entityPool[eid].ejectorId;
+				if (ejectorId > 0)
+				{
+					planetFactory.factorySystem.ejectorPool[ejectorId].orbitId = 1;
+				}
+
+				preIdMap.Remove(preId);
+				if (flag)
+				{
+					BeltQueueDequeue();
+					TryConn();
+				}
+				if (preIdMap.Count < 800)
+				{
+					BeltQueueDequeue();
+				}
+
+				TryBuildInserter();
+			}
+			catch(Exception e)
             {
-				NeedConnData.Add(d);
-				TryConn();
+				error = true;
+				errorMsg = e.Message + "\n" + e.StackTrace;
             }
-
-			int ejectorId = planetFactory.entityPool[eid].ejectorId;
-			if (ejectorId > 0)
-            {
-				planetFactory.factorySystem.ejectorPool[ejectorId].orbitId = 1;
-            }
-
-			preIdMap.Remove(preId);
-            if (flag)
-            {
-				BeltQueueDequeue();
-				TryConn();
-			}
-            if (preIdMap.Count < 800)
-            {
-				BeltQueueDequeue();
-			}
-
-			TryBuildInserter();
 		}
 		else if (preIdMap.Count == 0)
 		{

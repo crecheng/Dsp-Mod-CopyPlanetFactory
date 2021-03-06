@@ -35,7 +35,20 @@ public class ST
             }
         }
     }
-
+    public static string 等待连接建筑
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "等待连接建筑";
+            }
+            else
+            {
+                return "Waiting connect building";
+            }
+        }
+    }
     public static string 背包不足
     {
         get
@@ -577,6 +590,7 @@ public class ST
         }
     }
 
+
     public static string 左
     {
         get
@@ -588,6 +602,21 @@ public class ST
             else
             {
                 return "L";
+            }
+        }
+    }
+
+    public static string 复制选定区域
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "复制选定区域";
+            }
+            else
+            {
+                return "Copy select area";
             }
         }
     }

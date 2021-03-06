@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,8 @@ public class PlanetFactoryImg
 		Img = new Texture2D(801, 400);
 	}
 
+
+
 	public Texture2D GetImg(int x, int y,FactoryData data)
 	{
 		if (this.x == x && this.y == y)
@@ -27,6 +30,9 @@ public class PlanetFactoryImg
 		this.x = x;
 		this.y = y;
 
+		Texture2D temp = new Texture2D(400,400);
+		temp.ReadPixels(new Rect(0, 0, 40, 40), 0, 0);
+		
 		Img = new Texture2D(801, 400);
 		for (int i = 1; i <= 400; i++)
 		{
@@ -113,6 +119,43 @@ public class PlanetFactoryImg
 		return Img;
 	}
 
+	public void SelectBuild(PlanetFactory factory,List<int> Id,int x1,int x2,int y1,int y2)
+    {
+		int left = Math.Min(x1, x2);
+		int right = Math.Max(x1, x2);
+		int top = Math.Min(y1, y2);
+		int bottom = Math.Max(y1, y2);
+		for (int i = 1; i < factory.entityCursor; i++)
+		{
+			var data = factory.entityPool[i];
+			if (data.protoId > 0)
+			{
+                if (BuildIsInRect(data.pos, left, right, top, bottom))
+                {
+					Id.Add(i);
+                }
+			}
+		}
+	}
+
+	bool BuildIsInRect(Vector3 pos,int left,int right,int top,int bottom)
+    {
+		var p = GetImgPos(pos);
+		int x = (int)(p.z + 200);
+		if (p.x < 0)
+		{
+			x = -x + 801;
+		}
+		int y = (int)(p.y + 200);
+        if (x >= left && x <= right && y >= top && y <= bottom)
+        {
+			return true;
+        }
+        else
+        {
+			return false;
+        }
+	}
 
 	void SetBuildColor(Vector3 pos, Color c, int left = 0, int right = 0, int top = 0, int bottom = 0)
 	{

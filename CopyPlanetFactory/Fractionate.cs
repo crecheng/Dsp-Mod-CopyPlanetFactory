@@ -59,12 +59,29 @@ public class Fractionate : MyPreBuildData
             (Belt2 == 0 || BeltEIdMap.ContainsKey(Belt2)) &&
             (Belt0 == 0 || BeltEIdMap.ContainsKey(Belt0)))
         {
+            int fId = factory.entityPool[newEId].fractionateId;
             if (Belt0 > 0)
-                factory.WriteObjectConn(newEId, 0, isOut0, BeltEIdMap[Belt0], isOut0 ? 1 : 0);
+            {
+                int belt = BeltEIdMap[Belt0];
+                int beltId = factory.entityPool[belt].beltId;
+                factory.WriteObjectConn(newEId, 0, isOut0,belt , isOut0 ? 1 : 0);
+                factory.factorySystem.SetFractionateBelt(fId, beltId, 0, isOut0);
+            }
             if (Belt1 > 0)
-                factory.WriteObjectConn(newEId, 1, isOut1, BeltEIdMap[Belt1], isOut1 ? 1 : 0);
+            {
+                int belt = BeltEIdMap[Belt1];
+                int beltId = factory.entityPool[belt].beltId;
+                factory.WriteObjectConn(newEId, 1, isOut1, belt, isOut1 ? 1 : 0);
+                factory.factorySystem.SetFractionateBelt(fId, beltId, 1, isOut1);
+            }
             if (Belt2 > 0)
-                factory.WriteObjectConn(newEId, 2, isOut2, BeltEIdMap[Belt2], isOut2 ? 1 : 0);
+            {
+                int belt = BeltEIdMap[Belt2];
+                int beltId = factory.entityPool[belt].beltId;
+                factory.WriteObjectConn(newEId, 2, isOut2, belt, isOut2 ? 1 : 0);
+                factory.factorySystem.SetFractionateBelt(fId, beltId, 2, isOut2);
+            }
+            return true;
         }
         return false;
     }

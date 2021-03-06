@@ -142,7 +142,7 @@ public class Station:MyPreBuildData
 				}
 			}
 		}
-		return isMissing;
+		return !isMissing;
     }
 
     public override void SetData(PlanetFactory factory, int eId)

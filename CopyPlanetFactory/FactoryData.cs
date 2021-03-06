@@ -30,6 +30,8 @@ public class FactoryData
 	public bool isInitItem;
 	public PlanetFactory factory;
 
+
+
 	/// <summary>
 	/// 建筑个数
 	/// </summary>
@@ -181,6 +183,9 @@ public class FactoryData
 												break;
 											case EDataType.Fractionate:
 												AllData.Add(new Fractionate(data));
+												break;
+											case EDataType.PowerExchanger:
+												AllData.Add(new PowerExchanger(data));
 												break;
 
 
@@ -348,128 +353,161 @@ public class FactoryData
 	/// 复制建筑
 	/// </summary>
 	/// <param name="factory">工厂数据</param>
-	public void CopyDate(PlanetFactory factory)
+	public void CopyData(PlanetFactory factory)
 	{
 		Clear();
 		this.factory = factory;
 		var fSystem = factory.factorySystem;
 		for(int i = 1; i < factory.entityCursor; i++)
         {
-			
-			var ed = factory.entityPool[i];
-			if (ed.protoId > 0)
+			CopyBuildData(factory, i);
+		}
+	}
+
+	public void CopyBuildData(PlanetFactory factory, int i)
+	{
+		var fSystem = factory.factorySystem;
+		var ed = factory.entityPool[i];
+		if (ed.protoId > 0)
+		{
+			MyPreBuildData temp = null;
+
+			if (ed.splitterId > 0)
 			{
-				MyPreBuildData temp = null;
-				if (ed.assemblerId > 0)
+				var ap = factory.cargoTraffic.splitterPool[ed.splitterId];
+				int c0 = factory.entityConnPool[16 * ap.entityId];
+				int c1 = factory.entityConnPool[16 * ap.entityId + 1];
+				int c2 = factory.entityConnPool[16 * ap.entityId + 2];
+				int c3 = factory.entityConnPool[16 * ap.entityId + 3];
+				temp = new Splitter(GetPreDate(ed), c0, c1, c2, c3);
+			}
+			else if (ed.labId > 0)
+			{
+				var ap = factory.factorySystem.labPool[ed.labId];
+				if (ap.nextLabId == 0)
 				{
-					var ap = fSystem.assemblerPool[ed.assemblerId];
-					temp = new Assembler(GetPreDate(ap, ed));
-				}
-				else if (ed.ejectorId > 0)
-                {
-					var ap = fSystem.ejectorPool[ed.ejectorId];
-					temp = new Assembler(GetPreDate(ed));
-				}
-				else if (ed.siloId > 0)
-                {
-					var ap = fSystem.siloPool[ed.siloId];
-					temp = new Assembler(GetPreDate(ed));
-				}
-				else if (ed.powerGenId > 0)
-                {
-					var ap = factory.powerSystem.genPool[ed.powerGenId];
-					if (ap.gamma)
-                    {
-						int c0 = factory.entityConnPool[16 * ap.entityId];
-						int c1 = factory.entityConnPool[16 * ap.entityId + 1];
-						temp = new Gamm(GetPreDate(ed), ap.productId, c0, c1);
-					}
-                    else
-                    {
-						temp = new Assembler(GetPreDate(ed));
-					}
-					temp.type = EDataType.PowGen;
-
-				}
-				else if (ed.powerNodeId > 0)
-                {
-					var ap = factory.powerSystem.nodePool[ed.powerNodeId];
-					temp = new Assembler(GetPreDate(ed));
-				}
-				else if (ed.splitterId > 0)
-                {
-					var ap = factory.cargoTraffic.splitterPool[ed.splitterId];
-					int c0 = factory.entityConnPool[16 * ap.entityId];
-					int c1 = factory.entityConnPool[16 * ap.entityId + 1];
-					int c2 = factory.entityConnPool[16 * ap.entityId + 2];
-					int c3 = factory.entityConnPool[16 * ap.entityId + 3];
-					temp = new Splitter(GetPreDate(ed), c0, c1, c2, c3);
-				}
-				else if (ed.labId > 0)
-                {
-					var ap = factory.factorySystem.labPool[ed.labId];
-                    if (ap.nextLabId == 0)
-                    {
-						temp = new Lab(GetPreDate(ed), ap.researchMode, ap.recipeId, ap.techId);
-					}
-				}
-				else if (ed.stationId > 0)
-                {
-					var ap = factory.transport.stationPool[ed.stationId];
-                    if (ap != null)
-                    {
-						if (ed.protoId == 0)
-							continue;
-						temp = new Station(GetPreDate(ed), ap);
-					}
-				}
-				else if (ed.inserterId > 0)
-                {
-					var ip= fSystem.inserterPool[ed.inserterId];
-					InserterComponent tempp = ip;
-					var target = factory.entityPool[tempp.insertTarget];
-					var pick = factory.entityPool[tempp.pickTarget];
-					int outConn = factory.entityConnPool[i * 16];
-					int inConn = factory.entityConnPool[i * 16 + 1];
-					temp = new Inserter(GetPreDate(tempp, ed), ip, outConn, inConn);
-				}
-				else if (ed.beltId > 0)
-                {
-					var ap = factory.cargoTraffic.beltPool[ed.beltId];
-					bool flag2;
-					int slot;
-					factory.ReadObjectConn(i, 0, out flag2, out int out1, out slot);
-					factory.ReadObjectConn(i, 1, out flag2, out int in1, out slot);
-					factory.ReadObjectConn(i, 2, out flag2, out int in2, out slot);
-					factory.ReadObjectConn(i, 3, out flag2, out int in3, out slot);
-					temp = new Belt(GetPreDate(ap, ed), ap, out1, in1, in2, in3);
-					Belt tBelt = (Belt)temp;
-					if (out1 == 0)
-					{
-						CheckBeltData.Add(i, tBelt);
-					}
-
-					tBelt.beltOut = EIdIsBeltId(out1);
-					tBelt.beltIn1 = EIdIsBeltId(in1);
-					tBelt.beltIn2 = EIdIsBeltId(in2);
-					tBelt.beltIn3 = EIdIsBeltId(in3);
-				}
-				else if (ed.fractionateId > 0)
-                {
-					var ap = factory.factorySystem.fractionatePool[ed.fractionateId];
-					int c0 = factory.entityConnPool[i * 16];
-					int c1 = factory.entityConnPool[i * 16+1];
-					int c2 = factory.entityConnPool[i * 16+2];
-					temp = new Fractionate(GetPreDate(ed), c0, c1, c2);
-                }
-
-				if (temp != null)
-				{
-					temp.oldEId = i;
-					AllData.Add(temp);
-					AddItemCount(ed.protoId);
+					temp = new Lab(GetPreDate(ed), ap.researchMode, ap.recipeId, ap.techId);
 				}
 			}
+			else if (ed.stationId > 0)
+			{
+				var ap = factory.transport.stationPool[ed.stationId];
+				if (ap != null)
+				{
+					temp = new Station(GetPreDate(ed), ap);
+				}
+			}
+			else if (ed.inserterId > 0)
+			{
+				var ip = fSystem.inserterPool[ed.inserterId];
+				InserterComponent tempp = ip;
+				var target = factory.entityPool[tempp.insertTarget];
+				var pick = factory.entityPool[tempp.pickTarget];
+				int outConn = factory.entityConnPool[i * 16];
+				int inConn = factory.entityConnPool[i * 16 + 1];
+				temp = new Inserter(GetPreDate(tempp, ed), ip, outConn, inConn);
+			}
+			else if (ed.beltId > 0)
+			{
+				var ap = factory.cargoTraffic.beltPool[ed.beltId];
+				bool flag2;
+				int slot;
+				factory.ReadObjectConn(i, 0, out flag2, out int out1, out slot);
+				factory.ReadObjectConn(i, 1, out flag2, out int in1, out slot);
+				factory.ReadObjectConn(i, 2, out flag2, out int in2, out slot);
+				factory.ReadObjectConn(i, 3, out flag2, out int in3, out slot);
+				temp = new Belt(GetPreDate(ap, ed), ap, out1, in1, in2, in3);
+				Belt tBelt = (Belt)temp;
+				if (out1 == 0)
+				{
+					CheckBeltData.Add(i, tBelt);
+				}
+
+				tBelt.beltOut = EIdIsBeltId(out1);
+				tBelt.beltIn1 = EIdIsBeltId(in1);
+				tBelt.beltIn2 = EIdIsBeltId(in2);
+				tBelt.beltIn3 = EIdIsBeltId(in3);
+			}
+			else if (ed.fractionateId > 0)
+			{
+				var ap = factory.factorySystem.fractionatePool[ed.fractionateId];
+				int c0 = factory.entityConnPool[i * 16];
+				int c1 = factory.entityConnPool[i * 16 + 1];
+				int c2 = factory.entityConnPool[i * 16 + 2];
+				temp = new Fractionate(GetPreDate(ed), c0, c1, c2);
+			}
+			else if (ed.powerExcId > 0)
+			{
+				var ap = factory.powerSystem.excPool[ed.powerExcId];
+				int c0 = factory.entityConnPool[i * 16];
+				int c1 = factory.entityConnPool[i * 16 + 1];
+				int c2 = factory.entityConnPool[i * 16 + 2];
+				int c3 = factory.entityConnPool[i * 16 + 3];
+				temp = new PowerExchanger(GetPreDate(ed), c0, c1, c2, c3, ap.targetState);
+			}
+			else if (ed.assemblerId > 0)
+			{
+				var ap = fSystem.assemblerPool[ed.assemblerId];
+				temp = new Assembler(GetPreDate(ap, ed));
+			}
+			else if (ed.ejectorId > 0)
+			{
+				var ap = fSystem.ejectorPool[ed.ejectorId];
+				temp = new Assembler(GetPreDate(ed));
+			}
+			else if (ed.siloId > 0)
+			{
+				var ap = fSystem.siloPool[ed.siloId];
+				temp = new Assembler(GetPreDate(ed));
+			}
+			else if (ed.powerGenId > 0)
+			{
+				var ap = factory.powerSystem.genPool[ed.powerGenId];
+				if (ap.gamma)
+				{
+
+					int c0 = factory.entityConnPool[16 * ap.entityId];
+					int c1 = factory.entityConnPool[16 * ap.entityId + 1];
+					temp = new Gamm(GetPreDate(ed), ap.productId, c0, c1);
+				}
+				else
+				{
+					temp = new Assembler(GetPreDate(ed));
+					temp.type = EDataType.PowGen;
+				}
+
+
+			}
+			else if (ed.powerNodeId > 0)
+			{
+				var ap = factory.powerSystem.nodePool[ed.powerNodeId];
+				temp = new Assembler(GetPreDate(ed));
+			}
+			//else if (ed.storageId > 0)
+			//{
+			//	var ap = factory.factoryStorage.storagePool[ed.storageId];
+			//    if (ap.next == 0)
+			//    {
+			//		temp = new Assembler(GetPreDate(ed));
+			//    }
+			//}
+
+			if (temp != null)
+			{
+				temp.oldEId = i;
+				AllData.Add(temp);
+				AddItemCount(ed.protoId);
+			}
+		}
+	}
+	public void CopyData(PlanetFactory factory, List<int> id)
+	{
+		Clear();
+		this.factory = factory;
+		var fSystem = factory.factorySystem;
+		foreach (int i in id)
+		{
+			CopyBuildData(factory, i);
 		}
 	}
 
@@ -606,25 +644,52 @@ public class FactoryData
 		count1 = 0;
 		noNeeditem = string.Empty;
 		count2 = 0;
-		if (!isInitItem)
-			InitItemNeed();
-		if (ItemNeed.ContainsKey(0))
+		if (p != null)
 		{
-			ItemNeed.Remove(0);
-		}
-		foreach (var d in ItemNeed)
-		{
-			if (p.package.GetItemCount(d.Key) >= d.Value)
+
+			if (!isInitItem)
+				InitItemNeed();
+			if (ItemNeed.ContainsKey(0))
 			{
-				count1++;
-				var item = LDB.items.Select(d.Key);
-				haveNeedItem += $"{item.name}【{d.Value}】\n";
-				//Debug.Log($"【{d.Key}】");
+				ItemNeed.Remove(0);
 			}
-			else
+			foreach (var d in ItemNeed)
 			{
+				if (p.package.GetItemCount(d.Key) >= d.Value)
+				{
+					count1++;
+					var item = LDB.items.Select(d.Key);
+					haveNeedItem += $"{item.name}【{d.Value}】\n";
+					//Debug.Log($"【{d.Key}】");
+				}
+				else
+				{
+					count2++;
+					//Debug.Log($"({ d.Key})");
+					var item = LDB.items.Select(d.Key);
+					if (item != null)
+					{
+						noNeeditem += $"{item.name}【{d.Value}】\n";
+					}
+					else
+					{
+						noNeeditem += $"{d.Key}【{d.Value}】\n";
+					}
+				}
+			}
+		}
+		else
+		{
+			if (!isInitItem)
+				InitItemNeed();
+			if (ItemNeed.ContainsKey(0))
+			{
+				ItemNeed.Remove(0);
+			}
+			foreach (var d in ItemNeed)
+			{
+
 				count2++;
-				//Debug.Log($"({ d.Key})");
 				var item = LDB.items.Select(d.Key);
 				if (item != null)
 				{
@@ -634,9 +699,9 @@ public class FactoryData
 				{
 					noNeeditem += $"{d.Key}【{d.Value}】\n";
 				}
+
 			}
 		}
-
 	}
 
 	/// <summary>
