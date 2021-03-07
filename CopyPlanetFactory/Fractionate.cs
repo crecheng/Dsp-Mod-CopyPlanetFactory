@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
+/// <summary>
+/// 分馏器
+/// </summary>
 public class Fractionate : MyPreBuildData
 {
     int c0;

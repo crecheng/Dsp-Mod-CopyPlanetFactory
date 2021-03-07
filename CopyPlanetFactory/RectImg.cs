@@ -10,6 +10,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
+/// <summary>
+/// 选取区域的矩阵
+/// </summary>
 public class RectImg
 {
     int x1;
@@ -36,6 +39,14 @@ public class RectImg
         }
     }
 
+    /// <summary>
+    /// 绘制选取矩阵
+    /// </summary>
+    /// <param name="rectx1"></param>
+    /// <param name="rectx2"></param>
+    /// <param name="recty1"></param>
+    /// <param name="recty2"></param>
+    /// <returns></returns>
     public Texture2D getRect(int rectx1,int rectx2,int recty1,int recty2)
     {
         if (rectx1 == x1 && rectx2 == x2 && recty1 == y1 && recty2 == y2)

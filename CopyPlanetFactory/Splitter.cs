@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
+/// <summary>
+/// 四分器
+/// </summary>
 public class Splitter : MyPreBuildData
 {
     int c0;

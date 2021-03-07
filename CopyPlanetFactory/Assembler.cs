@@ -7,7 +7,9 @@ using BepInEx;
 using HarmonyLib;
 using UnityEngine;
 
-
+/// <summary>
+/// 工作台
+/// </summary>
 public class Assembler : MyPreBuildData
 {
 	public Assembler(PrebuildData prebuild)

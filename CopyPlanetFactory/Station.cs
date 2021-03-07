@@ -4,9 +4,18 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
+/// <summary>
+/// 物流站
+/// </summary>
 public class Station:MyPreBuildData
 {
+	/// <summary>
+	/// 传送带接口数据
+	/// </summary>
 	public SlotData[] slots;
+	/// <summary>
+	/// 物流站内物品信息
+	/// </summary>
 	public StationStore[] storage;
 	public Station(PrebuildData prebuild, StationComponent sc)
 	{

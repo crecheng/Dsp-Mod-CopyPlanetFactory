@@ -5,7 +5,9 @@ using BepInEx;
 using HarmonyLib;
 using UnityEngine;
 
-
+/// <summary>
+/// 爪子
+/// </summary>
 public class Inserter : MyPreBuildData
 {
     public int outConn;//inserter

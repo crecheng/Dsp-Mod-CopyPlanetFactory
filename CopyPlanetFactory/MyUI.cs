@@ -14,28 +14,97 @@ using UnityEngine.EventSystems;
 
 public class MyUI
 {
+	/// <summary>
+	/// 复制按钮组
+	/// </summary>
 	public ButtonGroup buttonCopy;
+	/// <summary>
+	/// 粘贴按钮组
+	/// </summary>
 	public ButtonGroup buttonPaste;
+	/// <summary>
+	/// 清空按钮组
+	/// </summary>
 	public ButtonGroup buttonClear;
+	/// <summary>
+	/// 保存按钮组
+	/// </summary>
 	public ButtonGroup buttonSave;
+	/// <summary>
+	/// 停止按钮组
+	/// </summary>
 	public ButtonGroup buttonStop;
+	/// <summary>
+	/// 当前星球按钮组
+	/// </summary>
 	public ButtonGroup buttonLocal;
+	/// <summary>
+	/// 关闭按钮组
+	/// </summary>
 	public ButtonGroup buttonClose;
+	/// <summary>
+	/// 补充物品按钮组
+	/// </summary>
 	public ButtonGroup buttonRItem;
+	/// <summary>
+	/// 保存名字输入框
+	/// </summary>
 	public InputField SaveName;
+	/// <summary>
+	/// 实例对象
+	/// </summary>
 	public GameObject instance;
+	/// <summary>
+	/// 资源包实例
+	/// </summary>
 	public GameObject Res;
+	/// <summary>
+	/// 控制按钮
+	/// </summary>
 	public ButtonGroup ControlButton;
+	/// <summary>
+	/// 控制面板
+	/// </summary>
 	public GameObject ControlPanel;
+	/// <summary>
+	/// 控制面板的方位控制
+	/// </summary>
 	public RectTransform ControlPanelRect;
+	/// <summary>
+	/// 预留面板
+	/// </summary>
 	public GameObject MainPanel;
+	/// <summary>
+	/// 任务信息
+	/// </summary>
 	public Text TaskInfo;
+	/// <summary>
+	/// 任务信息矩阵
+	/// </summary>
 	public RectTransform TaskInfoRect;
+	/// <summary>
+	/// 文件按钮组
+	/// </summary>
 	public ButtonGroup[]  ButtonDataFile;
+	/// <summary>
+	/// 文件上一页按钮
+	/// </summary>
 	public ButtonGroup  ButtonDataUp;
+	/// <summary>
+	/// 文件页数
+	/// </summary>
 	public Text  ButtonDataPage;
+	/// <summary>
+	/// 文件下一页
+	/// </summary>
 	public ButtonGroup  ButtonDataDown;
+	/// <summary>
+	/// 是否加载成功
+	/// </summary>
 	public bool isLoad = false;
+	/// <summary>
+	/// 是否显示
+	/// </summary>
 	public bool isShow = false;
 	public Vector3 firstPos1;
 	public Vector3 firstPos2;
@@ -85,12 +154,15 @@ public class MyUI
 		ButtonDataUp = new ButtonGroup(GetButton(filePanel.transform, "ButtonUp"));
 		ButtonDataDown = new ButtonGroup(GetButton(filePanel.transform, "ButtonDown"));
 		var cpf = ControlPanel.transform;
+		//设置信息面板实例
 		TaskInfo = instance.transform.Find("TaskInfo").GetComponent<Text>();
+		//加载拖动组件
 		TaskInfo.gameObject.AddComponent<Drag>();
 		TaskInfoRect = TaskInfo.GetComponent<RectTransform>();
 		TaskInfoRect.sizeDelta = new Vector2(TaskInfoRect.sizeDelta.x, Screen.height *0.7f);
 		firstPos2 = TaskInfoRect.position;
 		TaskInfo.gameObject.SetActive(false);
+		//设置按钮实例
 		buttonCopy = new ButtonGroup(GetButton(cpf, "ButtonCopy"));
 		buttonPaste = new ButtonGroup(GetButton(cpf, "ButtonPaste"));
 		buttonClear = new ButtonGroup(GetButton(cpf, "ButtonClear"));
@@ -103,6 +175,7 @@ public class MyUI
 		{
 			ControlPanel.SetActive(false);
 		});
+		//加载翻译
 		buttonCopy.text.text = ST.复制;
 		buttonPaste.text.text = ST.粘贴;
 		buttonClear.text.text = ST.清空;

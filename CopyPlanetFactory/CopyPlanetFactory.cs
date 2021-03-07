@@ -13,7 +13,7 @@ using UnityEngine.UI;
 public class CopyPlanetFactory : BaseUnityPlugin
 {
 	
-	public const string Version = "2.1.0";
+	public const string Version = "2.1.1";
 	public const bool isDebug = false;
 	public static bool isLoad = false;
 	static MyUI ui;
@@ -22,6 +22,29 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	public Texture2D RedRectX;
 	public Texture2D RedRectY;
 	public GUIStyle rectStyle;
+	public static FactoryTask PastIngData = null;
+	public static int buildS = 0;
+	public static int buildF = 0;
+	public static int buildF1 = 0;
+	public static int buildF2 = 0;
+	public static bool isShowItem = false;
+	public static bool confirmStop = false;
+	private static int atPage = 0;
+	private static string info1 = string.Empty;
+	private static string info = string.Empty;
+	private static FactoryTask FData = new FactoryTask();
+	private static List<FactoryData> DataList = new List<FactoryData>();
+	private static string Buginfo = string.Empty;
+	private const float RECT_WEIDTH = 300f;
+	private static Rect rect = new Rect(30f, 30f, 1000, 600);
+	private static GUIStyle haveStyle = new GUIStyle();
+	private static GUIStyle noStyle = new GUIStyle();
+	private static int haveItemCount = 0;
+	private static int noItemCount = 0;
+	private static bool[] area = new bool[8];
+	private static FactoryData SelectData = null;
+	private static string haveItem = string.Empty;
+	private static string noItem = string.Empty;
 	void Start()
 	{
 		Harmony.CreateAndPatchAll(typeof(CopyPlanetFactory), null);
@@ -680,6 +703,8 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		}
 	}
 
+
+
 	public void AreaFalse()
     {
 		for(int i = 0; i < 8; i++)
@@ -869,28 +894,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		}
 		return null;
 	}
-	public static FactoryTask PastIngData = null;
-	public static int buildS = 0;
-	public static int buildF = 0;
-	public static int buildF1 = 0;
-	public static int buildF2 = 0;
-	public static bool isShowItem = false;
-	public static bool confirmStop = false;
-	private static int atPage = 0;
-	private static string info1 = string.Empty;
-	private static string info = string.Empty;
-	private static FactoryTask FData = new FactoryTask();
-	private static List<FactoryData> DataList = new List<FactoryData>();
-	private static string Buginfo = string.Empty;
-	private const float RECT_WEIDTH = 300f;
-	private static Rect rect = new Rect(30f, 30f, 1000, 600);
-	private static GUIStyle haveStyle = new GUIStyle();
-	private static GUIStyle noStyle = new GUIStyle();
-	private static int haveItemCount = 0;
-	private static int noItemCount = 0;
-	private static bool[] area = new bool[8];
-	private static FactoryData SelectData = null;
-	private static string haveItem = string.Empty;
-	private static string noItem = string.Empty;
+
 }
 

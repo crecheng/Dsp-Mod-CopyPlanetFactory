@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
+/// <summary>
+/// 研究所
+/// </summary>
 public class Lab:MyPreBuildData
 {
 	public bool isResearchMode;

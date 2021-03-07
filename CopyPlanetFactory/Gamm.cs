@@ -4,8 +4,15 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
+
+/// <summary>
+/// 锅盖(射线接收器)
+/// </summary>
 public class Gamm : MyPreBuildData
 {
+    /// <summary>
+    /// 接收方式(生产物品id)
+    /// </summary>
     int produceId;
     int conn0;
     int conn1;

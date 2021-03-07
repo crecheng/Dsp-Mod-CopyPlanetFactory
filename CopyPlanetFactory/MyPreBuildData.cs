@@ -7,11 +7,26 @@ using BepInEx;
 using HarmonyLib;
 using UnityEngine;
 
+/// <summary>
+/// 建筑数据的父类
+/// </summary>
 public class MyPreBuildData
 {
+	/// <summary>
+	/// 预建筑数据
+	/// </summary>
 	public PrebuildData pd;
+	/// <summary>
+	/// 复制过来的老的eid
+	/// </summary>
 	public int oldEId;
+	/// <summary>
+	/// 新建好后的eid
+	/// </summary>
 	public int newEId;
+	/// <summary>
+	/// 预建筑id
+	/// </summary>
 	public int preId;
 	public bool isBelt;
 	public bool isInserter;
@@ -21,6 +36,9 @@ public class MyPreBuildData
 	public bool isGamm;
 	public bool isSplitter;
 	public bool isNeedConn;
+	/// <summary>
+	/// 建筑类型，由子类赋值
+	/// </summary>
 	public EDataType type;
 
 	public MyPreBuildData()
@@ -48,6 +66,10 @@ public class MyPreBuildData
 		type = EDataType.Null;
 	}
 
+	/// <summary>
+	/// 设置旋转后的旋转数据
+	/// </summary>
+	/// <param name="factoryTask">工厂任务</param>
 	public void SetNewRot(FactoryTask factoryTask)
 	{
 		if (!isNewRot)
@@ -59,6 +81,7 @@ public class MyPreBuildData
 			isNewRot = true;
 		}
 	}
+
 
 	public int ProtoId
 	{

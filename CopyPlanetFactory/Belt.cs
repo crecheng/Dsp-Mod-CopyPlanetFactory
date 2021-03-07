@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
+/// <summary>
+/// 传送带
+/// </summary>
 public class Belt : MyPreBuildData
 {
 	public BeltComponent belt;
