@@ -52,7 +52,8 @@ public class Splitter : MyPreBuildData
         return new Splitter(pd, c0, c1, c2, c3)
         {
             oldEId = oldEId,
-            newEId = newEId
+            newEId = newEId,
+            isNeedConn = true
         };
     }
 
@@ -80,7 +81,7 @@ public class Splitter : MyPreBuildData
                 int beltEid = BeltEIdMap[Belt0];
                 int beltId = factory.entityPool[beltEid].beltId;
                 factory.WriteObjectConn(newEId,0, isOut0,beltEid, isOut0 ? 1 : 0);
-                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 0, isOut0);
+                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 0, !isOut0);
             }
             else
             {
@@ -91,7 +92,7 @@ public class Splitter : MyPreBuildData
                 int beltEid = BeltEIdMap[Belt1];
                 int beltId = factory.entityPool[beltEid].beltId;
                 factory.WriteObjectConn(newEId, 1, isOut1, beltEid, isOut1 ? 1 : 0);
-                factory.cargoTraffic.ConnectToSplitter(spId, beltId,1, isOut1);
+                factory.cargoTraffic.ConnectToSplitter(spId, beltId,1, !isOut1);
             }
             else
             {
@@ -102,7 +103,7 @@ public class Splitter : MyPreBuildData
                 int beltEid = BeltEIdMap[Belt2];
                 int beltId = factory.entityPool[beltEid].beltId;
                 factory.WriteObjectConn(newEId, 2, isOut2, beltEid, isOut2 ? 1 : 0);
-                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 2, isOut2);
+                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 2, !isOut2);
             }
             else
             {
@@ -113,7 +114,7 @@ public class Splitter : MyPreBuildData
                 int beltEid = BeltEIdMap[Belt3];
                 int beltId = factory.entityPool[beltEid].beltId;
                 factory.WriteObjectConn(newEId, 3, isOut3, beltEid, isOut3 ? 1 : 0);
-                factory.cargoTraffic.ConnectToSplitter(spId, beltId,3, isOut3);
+                factory.cargoTraffic.ConnectToSplitter(spId, beltId,3, !isOut3);
             }
             else
             {

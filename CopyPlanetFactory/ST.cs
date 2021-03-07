@@ -650,5 +650,36 @@ public class ST
         }
     }
 
+    public static string 区域
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "区域";
+            }
+            else
+            {
+                return "area";
+            }
+        }
+    }
+
+    public static string o
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "";
+            }
+            else
+            {
+                return " ";
+            }
+        }
+    }
+
+
 }
 

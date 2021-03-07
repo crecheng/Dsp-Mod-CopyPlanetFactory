@@ -403,6 +403,7 @@ public class FactoryTask
 
 	public void TryConn()
 	{
+		
 		List<MyPreBuildData> tmp = new List<MyPreBuildData>();
 		foreach (var d in NeedConnData)
 		{
@@ -413,6 +414,7 @@ public class FactoryTask
 		{
 			NeedConnData.Remove(d);
 		}
+
 	}
 
 	public void AddPasteData(Player player1, MyPreBuildData d)
@@ -527,20 +529,16 @@ public class FactoryTask
 				if (belts.Count > 0 && playerHaveBeltItem)
 				{
 					var dd = belts.Peek();
-					int c1 = eIdMap.Count;
-					AddPrebuildData(player, dd, out int pid, true);
-					//Debug.Log(pid);
-					if (pid > 0)
+					if (AddPrebuildData(player, dd, out int pid, true)>0)
 					{
-						BeltCount++;
-						haveBelt = true;
-						dd.preId = pid;
-						preIdMap.Add(pid, dd);
-						BeltCount++;
-						belts.Dequeue();
-					}
-					else if (eIdMap.Count - c1 > 0)
-					{
+						if (pid > 0)
+						{
+							BeltCount++;
+							haveBelt = true;
+							dd.preId = pid;
+							preIdMap.Add(pid, dd);
+							BeltCount++;
+						}
 						belts.Dequeue();
 					}
 				}
@@ -805,7 +803,7 @@ public class FactoryTask
 	/// <param name="pId">预建筑id</param>
 	/// <param name="IgnoreOverlap">是否忽略重叠</param>
 	/// <returns>是否添加成功</returns>
-	public bool AddPrebuildData(Player player, MyPreBuildData d, out int pId, bool IgnoreOverlap = false)
+	public int AddPrebuildData(Player player, MyPreBuildData d, out int pId, bool IgnoreOverlap = false)
 	{
 		pId = -1;
 		if (player.package.GetItemCount(d.ProtoId) > 0)
@@ -824,7 +822,7 @@ public class FactoryTask
                     }
 					buildF1++;
 					buildF++;
-					return false;
+					return 2;
 				}
 			}
 			else
@@ -843,16 +841,14 @@ public class FactoryTask
 					{
 						BeltEIdMap.Add(d.oldEId, eid);
 					}
-					buildF1++;
-					buildF++;
-					return false;
+					return 2;
 				}
 			}
 			pId = player.factory.AddPrebuildDataWithComponents(d.pd);
 			int e = player.planetData.factory.prebuildPool[pId].upEntity;
 			player.package.TakeItem(d.ProtoId, 1);
 			buildS++;
-			return true;
+			return 1;
         }
         else
         {
@@ -867,13 +863,13 @@ public class FactoryTask
 			}
 			if ((d.isBelt&&!playerHaveBeltItem)||(d.isInserter&&!playerHaveInserterItem))
 			{
-				return false;
+				return 0;
 			}
 			WaitItemBuild.Add(d);
 			AddWaitNeedIiem(d.ProtoId);
 			buildF2++;
 			buildF++;
-			return false;
+			return 0;
 		}
 
 	}

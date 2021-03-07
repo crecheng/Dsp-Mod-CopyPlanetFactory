@@ -48,6 +48,11 @@ public class FactoryData
 		return Img.GetImg(x, y, this);
     }
 
+	public Texture2D FreshImg()
+    {
+		return Img.Fresh(this);
+    }
+
 
 	void Init()
     {
@@ -145,7 +150,7 @@ public class FactoryData
                         {
 							Name = s[1];
 							AddItemCount(s[2]);
-							int i = 11;
+							int i = 10;
                             for (; i < s.Length; i++)
                             {
 								if (s[i].Length > 3)
@@ -362,14 +367,105 @@ public class FactoryData
         {
 			CopyBuildData(factory, i);
 		}
+		CopyMultiLayerBuild(factory);
+	}
+
+	public void CopyMultiLayerBuild(PlanetFactory factory,List<int> id=null)
+    {
+		List<int> lab0 = new List<int>();
+		Dictionary<int, int> labKey = new Dictionary<int, int>();
+		for(int i = 1; i < factory.factorySystem.labCursor; i++)
+        {
+			var d = factory.factorySystem.labPool[i];
+            if (d.entityId > 0)
+            {
+                if (d.nextLabId == 0)
+                {
+					lab0.Add(i);
+                }
+                else
+                {
+					labKey.Add(d.nextLabId, i);
+                }
+            }
+        }
+		foreach(int d in lab0)
+        {
+			int temp = d;
+			do
+			{
+				if (labKey.ContainsKey(temp))
+				{
+					temp = labKey[temp];
+				}
+				else
+					break;
+			} while (true);
+			var ld = factory.factorySystem.labPool[temp];
+			int eid = ld.entityId;
+			var ed = factory.entityPool[eid];
+
+			if (id == null||(id!=null&&id.Contains(eid)))
+			{
+				MyPreBuildData t = new Lab(GetPreDate(ed), ld.researchMode, ld.recipeId, ld.techId);
+				t.oldEId = eid;
+				AllData.Add(t);
+				AddItemCount(ed.protoId);
+			}
+		}
+		List<int> storge0 = new List<int>();
+		Dictionary<int, int> storgeKey = new Dictionary<int, int>();
+		for (int i = 1; i < factory.factoryStorage.storageCursor; i++)
+		{
+			var d = factory.factoryStorage.storagePool[i];
+			if (d.entityId > 0)
+			{
+				if (d.next == 0)
+				{
+					storge0.Add(i);
+				}
+				else
+				{
+					storgeKey.Add(d.next, i);
+				}
+			}
+		}
+		foreach (int d in storge0)
+		{
+			int temp = d;
+			do
+			{
+				if (storgeKey.ContainsKey(temp))
+				{
+					temp = storgeKey[temp];
+				}
+				else
+					break;
+			} while (true);
+			var ld = factory.factoryStorage.storagePool[temp];
+			int eid = ld.entityId;
+			var ed = factory.entityPool[eid];
+			if (id == null || (id != null && id.Contains(eid)))
+			{
+				MyPreBuildData t = new Assembler(GetPreDate(ed));
+				t.oldEId = eid;
+				AllData.Add(t);
+				AddItemCount(ed.protoId);
+			}
+		}
+
 	}
 
 	public void CopyBuildData(PlanetFactory factory, int i)
 	{
 		var fSystem = factory.factorySystem;
 		var ed = factory.entityPool[i];
+
+
 		if (ed.protoId > 0)
 		{
+			if (ed.labId > 0 || ed.storageId > 0 || ed.tankId > 0)
+				return;
 			MyPreBuildData temp = null;
 
 			if (ed.splitterId > 0)
@@ -380,14 +476,6 @@ public class FactoryData
 				int c2 = factory.entityConnPool[16 * ap.entityId + 2];
 				int c3 = factory.entityConnPool[16 * ap.entityId + 3];
 				temp = new Splitter(GetPreDate(ed), c0, c1, c2, c3);
-			}
-			else if (ed.labId > 0)
-			{
-				var ap = factory.factorySystem.labPool[ed.labId];
-				if (ap.nextLabId == 0)
-				{
-					temp = new Lab(GetPreDate(ed), ap.researchMode, ap.recipeId, ap.techId);
-				}
 			}
 			else if (ed.stationId > 0)
 			{
@@ -509,6 +597,7 @@ public class FactoryData
 		{
 			CopyBuildData(factory, i);
 		}
+		CopyMultiLayerBuild(factory, id);
 	}
 
 	public IEnumerator CheckBelt(float time)

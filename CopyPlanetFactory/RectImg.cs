@@ -17,16 +17,19 @@ public class RectImg
     int y1;
     int y2;
     Texture2D Img;
+    public static int imgh = 400;
     public RectImg()
     {
-        Img = new Texture2D(801, 400);
+        Img = new Texture2D(imgh*2+1, imgh);
     }
 
     public void Clear()
     {
-        for(int i = 0; i < 801; i++)
+        Img = new Texture2D(imgh * 2 + 1, imgh);
+        int w = imgh * 2 + 1;
+        for (int i = 0; i <w; i++)
         {
-            for(int j = 0; j < 400; j++)
+            for(int j = 0; j < imgh; j++)
             {
                 Img.SetPixel(i, j, new Color(0, 0, 0, 0));
             }
@@ -61,4 +64,6 @@ public class RectImg
         Img.Apply();
         return Img;
     }
+
+
 }

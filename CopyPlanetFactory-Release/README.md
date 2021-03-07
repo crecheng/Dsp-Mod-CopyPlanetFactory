@@ -66,4 +66,6 @@ Divided by the equator, north and south, left and right
 ### 更新
 1.7.1 更新数据格式，加入复制分馏塔
 
-2.0.0 全新ui，修复but，加入区域框选复制
+2.0.0 全新ui，修复bug，加入区域框选复制
+
+2.1.0 修复bug，加入区域删除，加入箱子复制

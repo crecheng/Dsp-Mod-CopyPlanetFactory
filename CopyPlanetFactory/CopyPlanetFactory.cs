@@ -13,7 +13,7 @@ using UnityEngine.UI;
 public class CopyPlanetFactory : BaseUnityPlugin
 {
 	
-	public const string Version = "2.0.0";
+	public const string Version = "2.1.0";
 	public const bool isDebug = false;
 	public static bool isLoad = false;
 	static MyUI ui;
@@ -39,6 +39,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		rectImg = new RectImg();
 	}
 
+	static int tryConnTimes = 0;
 	void Update()
 	{
 		frame++;
@@ -46,45 +47,14 @@ public class CopyPlanetFactory : BaseUnityPlugin
         {
 			var canvas = UIRoot.instance.overlayCanvas;
 			ui.LoadUI(canvas.transform);
-			ui.buttonCopy.SetOnclik(CopyData);
-			ui.buttonPaste.SetOnclik(PasteData);
-			ui.buttonSave.SetOnclik(SaveData);
-			ui.buttonClear.SetOnclik(ClearData);
-			ui.buttonStop.SetOnclik(StopData);
-			ui.buttonLocal.SetOnclik(ShowImg);
-			ui.buttonRItem.SetOnclik(ReplenishItem);
-			ui.buttonLocal.SetOnclik(LocalImg);
-			ui.ControlButton.SetOnclik(delegate
-			{
-                if (frame - clickFrame < 10)
-                {
-					ui.UIPostionReast();
-                }
-				clickFrame = frame;
-			});
-			SetPageData();
-			for (int i= 0; i < 7; i++){
-				int index = i;
-				ui.ButtonDataFile[i].SetOnclik(delegate
-				{
-					SelectData = GetData(index);
-					isShowImg = true;
-					AreaTrue();
-				});
-				ui.ButtonDataPage[i].SetOnclik(delegate
-				{
-
-					atPage = index;
-					PageTo();
-				});
-            }
+			SetUIData();
 		}
         if (ui != null && ui.isLoad)
 		{
 			FData.Data.Name=ui.SaveName.text;
 			FData.Data.Name.Replace("\\", "").Replace("/", "").Replace("?", "").Replace("|", "").Replace("<", "").Replace(">", "").Replace(":", "").Replace("*", "").Replace("\"", "");
 			ui.SaveName.text = FData.Data.Name;
-
+			info = "";
 			if (PastIngData != null)
 			{
 				if (PastIngData.error)
@@ -100,6 +70,8 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				}
 				else
 				{
+					info = "【正在复制】\n";
+					info += noItem + "\n";
 					ui.TaskInfo.color = Color.white;
 					var tRect = ui.TaskInfo.GetComponent<RectTransform>();
 					tRect.sizeDelta = new Vector2(102f, 330f);
@@ -115,16 +87,71 @@ public class CopyPlanetFactory : BaseUnityPlugin
 						$"{ST.等待物品}\n{PastIngData.WaitBuildCount}\n" +
 						$"{ST.等待连接传送带}\n{PastIngData.BuildBeltData.Count}\n" +
 						$"{ST.等待连接建筑}\n{PastIngData.NeedConnData.Count}\n";
+                    if (PastIngData.preIdMap.Count == 0&&PastIngData.WaitBuildCount==0&& tryConnTimes<10)
+                    {
+						PastIngData.TryConn();
+						tryConnTimes++;
+                    }
 				}
 				if (!PastIngData.Working)
 				{
 					PastIngData = null;
+					tryConnTimes = 0;
 				}
 			}
-			ui.TaskInfo.text = info1;
+			ui.TaskInfo.text = info+(info.Length>0?"\n-------\n":"")+ info1;
+			
 
 		}
 		
+	}
+
+	void SetUIData()
+    {
+		ui.buttonCopy.SetOnclik(CopyData);
+		ui.buttonPaste.SetOnclik(PasteData);
+		ui.buttonSave.SetOnclik(SaveData);
+		ui.buttonClear.SetOnclik(ClearData);
+		ui.buttonStop.SetOnclik(StopData);
+		ui.buttonRItem.SetOnclik(ReplenishItem);
+		ui.buttonLocal.SetOnclik(LocalImg);
+		ui.ControlButton.SetOnclik(delegate
+		{
+			if (frame - clickFrame < 10)
+			{
+				ui.UIPostionReast();
+			}
+			clickFrame = frame;
+		});
+		SetPageData();
+		for (int i = 0; i < 7; i++)
+		{
+			int index = i;
+			ui.ButtonDataFile[i].SetOnclik(delegate
+			{
+				SelectData = GetData(index);
+				isShowImg = true;
+				isLookLocal = false;
+				isAreaSelect = false;
+				AreaTrue();
+			});
+		}
+		ui.ButtonDataUp.SetOnclik(delegate
+		{
+			if (atPage > 0)
+			{
+				atPage--;
+				PageTo();
+			}
+		});
+		ui.ButtonDataDown.SetOnclik(delegate
+		{
+			if (atPage < 2100000000)
+			{
+				atPage++;
+				PageTo();
+			}
+		});
 	}
 	void CopyData()
 	{
@@ -162,7 +189,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		FData.ClearData();
 		SelectData = null;
 		noItem = string.Empty;
-
+		tryConnTimes = 0;
 		AreaFalse();
 
 	}
@@ -215,15 +242,11 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		}
 	}
 
-	void ShowImg()
-    {
-		isShowImg = true;
-    }
-
 	void LocalImg()
     {
 		SelectData = null;
 		isShowImg = true;
+		isLookLocal = true;
 	}
 
 	void ReplenishItem()
@@ -269,7 +292,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 					data.Import(d);
 					DataList.Add(data);
 				}
-				totalPage = DataList.Count / 10 + 1;
 			}
 			
 		}
@@ -285,17 +307,14 @@ public class CopyPlanetFactory : BaseUnityPlugin
 
 	void SetPageData()
 	{
-		int pageTotal = (DataList.Count / 7) + 1;
-		int min = Math.Min(pageTotal, 7);
-		for (int i = 0; i < min; i++)
-		{
-			ui.ButtonDataPage[i].SetActive(true);
-		}
 		atPage = 0;
 		PageTo();
 	}
 	void PageTo()
 	{
+
+		ui.ButtonDataPage.text = "" + (atPage + 1);
+
 		int start = atPage * 7;
 		int c = DataList.Count - start;
 		if (c > 0)
@@ -312,6 +331,13 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				ui.ButtonDataFile[i].SetActive(false);
 			}
 		}
+        else
+        {
+			for (int i=0; i < 7; i++)
+			{
+				ui.ButtonDataFile[i].SetActive(false);
+			}
+		}
 	}
 
 	void RemoverAllBuilding()
@@ -322,30 +348,57 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			var factory = player.planetData.factory;
 			for(int i = 0; i < factory.entityCursor; i++)
             {
-                if (factory.entityPool[i].protoId > 0)
+				if (factory.entityPool[i].protoId > 0)
 				{
-					try
-					{
-						if (player.package.isFull)
-						{
-							UIRealtimeTip.Popup(ST.背包不足);
-							break;
-						}
-						ItemProto itemProto = LDB.items.Select((int)factory.entityPool[i].protoId);
-						int itemId = (itemProto == null) ? 0 : itemProto.ID;
-						factory.DestructFinally(player, i, ref itemId);
-						player.package.AddItemStacked(itemId, 1);
-						UIItemup.Up(itemId, 1);
-					}catch(Exception e)
-                    {
-						Debug.LogError(e.Message);
-						Debug.LogError(e.StackTrace);
-                    }
+					if (!RemoveBuild(player, factory, i))
+						break;
 				}
             }
 			
         }
     }
+
+	void RemoveSelectBuild(List<int> id)
+	{
+		if (CheckData())
+		{
+			var player = GameMain.mainPlayer;
+			var factory = player.planetData.factory;
+			foreach (int i in id)
+			{
+				if (factory.entityPool[i].protoId > 0)
+				{
+					if (!RemoveBuild(player, factory, i))
+						break;
+				}
+			}
+
+		}
+	}
+
+	bool RemoveBuild(Player player, PlanetFactory factory, int eid)
+	{
+		try
+		{
+			if (player.package.isFull)
+			{
+				UIRealtimeTip.Popup(ST.背包不足);
+				return false;
+			}
+			ItemProto itemProto = LDB.items.Select((int)factory.entityPool[eid].protoId);
+			int itemId = (itemProto == null) ? 0 : itemProto.ID;
+			factory.DestructFinally(player, eid, ref itemId);
+			player.package.AddItemStacked(itemId, 1);
+			UIItemup.Up(itemId, 1);
+			return true;
+		}
+		catch (Exception e)
+		{
+			Debug.LogError(e.Message);
+			Debug.LogError(e.StackTrace);
+			return false;
+		}
+	}
 
 	static Texture2D windowsBorder = new Texture2D(0, 0);
 	static GUIContent windowContent = new GUIContent();
@@ -377,6 +430,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	static bool isAreaSelect;
 	static int ImgHeight = 400;
 	static RectImg rectImg;
+	static bool isLookLocal = false;
 	void mywindowfunction(int windowid)
 	{
 		int h = ImgHeight;
@@ -384,10 +438,10 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		Rect ImgRect = new Rect(10, 10,w,h);
 		ImgX = (int)GUI.VerticalSlider(new Rect(10+w, 100, 20, 200), ImgX, 0, 180);
 		ImgY = (int)GUI.HorizontalSlider(new Rect(300, 10+h, 200, 20), ImgY, 0, 180);
-		if (SelectData != null)
-			GUI.Label(ImgRect, SelectData.GetImg(ImgX, ImgY));
-		else
+        if (isLookLocal)
 			GUI.Label(ImgRect, localImg.GetImg(ImgX, ImgY, GetFactory()));
+		else if (SelectData != null)
+			GUI.Label(ImgRect, SelectData.GetImg(ImgX, ImgY));
 
 		
 		if (ImgX < 2 && ImgY < 2)
@@ -407,34 +461,34 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			isShowImg = false;
 		}
 
-		if (GetFactory() != null)
+		if (GetFactory() != null&&isLookLocal)
 		{
-			if (GUI.Button(new Rect(610, h+80, 120, 40), $"{ST.移除} {ST.当前星球}\n{ST.全部} {ST.建筑}"))
+			if (GUI.Button(new Rect(610, h+80, 120, 40), $"{ST.移除}{ST.o}{ST.当前星球}\n{ST.全部}{ST.o}{ST.建筑}"))
 			{
 				RemoverAllBuilding();
 			}
 		}
-        if (CheckData()&&SelectData==null)
+        if (CheckData()&&isLookLocal)
         {
 			if(GUI.Button(new Rect(500, h+80, 100, 40), isAreaSelect ?   "取消": ST.区域选择)){
 				isAreaSelect = !isAreaSelect;
             }
         }
-        if (isAreaSelect)
-        {
-			recty1 = (int)GUI.VerticalSlider(new Rect(35+w, 10, 20, h), recty1, h, 0);
-			recty2 = (int)GUI.VerticalSlider(new Rect(60+w, 10, 20, h), recty2, h, 0);
-			rectx1 = (int)GUI.HorizontalSlider(new Rect(10, h+35, w, 20), rectx1, 0, w);
-			rectx2 = (int)GUI.HorizontalSlider(new Rect(10, h+60, w, 20), rectx2, 0, w);
+		if (isAreaSelect)
+		{
+			recty1 = (int)GUI.VerticalSlider(new Rect(35 + w, 10, 20, h), recty1, h, 0);
+			recty2 = (int)GUI.VerticalSlider(new Rect(60 + w, 10, 20, h), recty2, h, 0);
+			rectx1 = (int)GUI.HorizontalSlider(new Rect(10, h + 35, w, 20), rectx1, 0, w);
+			rectx2 = (int)GUI.HorizontalSlider(new Rect(10, h + 60, w, 20), rectx2, 0, w);
 			GUI.Label(new Rect(10, 10, w, h), rectImg.getRect(rectx1, rectx2, recty1, recty2));
 			var fd = GetFactory();
 			GUI.Label(new Rect(10, h + 80, 200, 500), $"{ rectx1},{rectx2},{recty1},{recty2}");
-			if(GUI.Button(new Rect(500, h + 130, 100, 40), ST.复制选定区域))
-            {
+			if (GUI.Button(new Rect(500, h + 130, 100, 60), ST.复制选定区域))
+			{
 				List<int> id = new List<int>();
 				localImg.SelectBuild(fd, id, rectx1, rectx2, recty1, recty2);
 				AreaTrue();
-				FData.CopyData(fd,id);
+				FData.CopyData(fd, id);
 				for (int i = 0; i < 30; i++)
 				{
 					StartCoroutine(FData.Data.CheckBelt((float)(0.1 + 0.1 * i)));
@@ -443,46 +497,52 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				FData.Data.GetImg(ImgX, ImgY);
 				info1 = ST.复制 + ST.成功 + ":" + SelectData.AllData.Count;
 			}
+			if (GUI.Button(new Rect(610, h + 130, 120, 60), $"{ST.移除}{ST.o}{ST.选定}{ST.o}{ST.区域}{ST.o}{ST.建筑}"))
+			{
+				List<int> id = new List<int>();
+				localImg.SelectBuild(fd, id, rectx1, rectx2, recty1, recty2);
+				RemoveSelectBuild(id);
+			}
 		}
 		if (SelectData != null&&!isAreaSelect)
 		{
 			int buttonW = 160;
 			int buttonH = 20;
-			if (GUI.Button(new Rect(10, 430, buttonW, buttonH), ST.粘贴))
+			if (GUI.Button(new Rect(10, h+30, buttonW, buttonH), ST.粘贴))
 			{
 				PasteData(SelectData, ERotationType.Null);
 			}
-			if (GUI.Button(new Rect(10, 450, buttonW, buttonH), ST.赤道 + "(Y)" + ST.镜像 + ST.粘贴))
+			if (GUI.Button(new Rect(10, h + 50, buttonW, buttonH), ST.赤道 + "(Y)" + ST.镜像 + ST.粘贴))
 			{
 				PasteData(SelectData, ERotationType.Y);
 			}
-			if (GUI.Button(new Rect(10, 470, buttonW, buttonH), ST.左右 + "(Z)" + ST.镜像 + ST.粘贴))
+			if (GUI.Button(new Rect(10, h + 70, buttonW, buttonH), ST.左右 + "(Z)" + ST.镜像 + ST.粘贴))
 			{
 				PasteData(SelectData, ERotationType.Z);
 			}
-			if (GUI.Button(new Rect(10, 490, buttonW, buttonH), ST.东西 + "(X)" + ST.镜像 + ST.粘贴))
+			if (GUI.Button(new Rect(10, h + 90, buttonW, buttonH), ST.东西 + "(X)" + ST.镜像 + ST.粘贴))
 			{
 				PasteData(SelectData, ERotationType.X);
 			}
-			if (GUI.Button(new Rect(10, 510, buttonW, buttonH), "XY " + ST.镜像 + ST.粘贴))
+			if (GUI.Button(new Rect(10, h + 110, buttonW, buttonH), "XY " + ST.镜像 + ST.粘贴))
 			{
 				PasteData(SelectData, ERotationType.XY);
 			}
-			if (GUI.Button(new Rect(10, 530, buttonW, buttonH), "XZ " + ST.镜像 + ST.粘贴))
+			if (GUI.Button(new Rect(10, h + 130, buttonW, buttonH), "XZ " + ST.镜像 + ST.粘贴))
 			{
 				PasteData(SelectData, ERotationType.XZ);
 			}
-			if (GUI.Button(new Rect(10, 550, buttonW, buttonH), "YZ " + ST.镜像 + ST.粘贴))
+			if (GUI.Button(new Rect(10, h + 150, buttonW, buttonH), "YZ " + ST.镜像 + ST.粘贴))
 			{
 				PasteData(SelectData, ERotationType.YZ);
 			}
-			if (GUI.Button(new Rect(10, 570, buttonW, buttonH), "XYZ " + ST.镜像 + ST.粘贴))
+			if (GUI.Button(new Rect(10, h + 170, buttonW, buttonH), "XYZ " + ST.镜像 + ST.粘贴))
 			{
 				PasteData(SelectData, ERotationType.XYZ);
 			}
 
 			int bc = 1;
-			if (GUI.Button(new Rect(180, 410+20 * bc++, 100, 20), ST.北 + ST.半球))
+			if (GUI.Button(new Rect(180, h + 10 +20 * bc++, 100, 20), ST.北 + ST.半球))
 			{
 				AreaFalse();
 				area[0] = true;
@@ -490,7 +550,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				area[4] = true;
 				area[5] = true;
 			}
-			if (GUI.Button(new Rect(180, 410+20 * bc++, 100, 20), ST.南 + ST.半球))
+			if (GUI.Button(new Rect(180, h + 10 +20 * bc++, 100, 20), ST.南 + ST.半球))
 			{
 				AreaFalse();
 				area[2] = true;
@@ -498,7 +558,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				area[6] = true;
 				area[7] = true;
 			}
-			if (GUI.Button(new Rect(180, 410+20 * bc++, 100, 20), ST.东 + ST.半球))
+			if (GUI.Button(new Rect(180, h + 10 +20 * bc++, 100, 20), ST.东 + ST.半球))
 			{
 				AreaFalse();
 				area[0] = true;
@@ -506,7 +566,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				area[2] = true;
 				area[3] = true;
 			}
-			if (GUI.Button(new Rect(180, 410+20 * bc++, 100, 20), ST.西 + ST.半球))
+			if (GUI.Button(new Rect(180, h + 10 +20 * bc++, 100, 20), ST.西 + ST.半球))
 			{
 				AreaFalse();
 				area[4] = true;
@@ -514,7 +574,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				area[6] = true;
 				area[7] = true;
 			}
-			if (GUI.Button(new Rect(180, 410+20 * bc++, 100, 20), ST.左 + ST.半球))
+			if (GUI.Button(new Rect(180, h + 10 +20 * bc++, 100, 20), ST.左 + ST.半球))
 			{
 				AreaFalse();
 				area[1] = true;
@@ -522,7 +582,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				area[5] = true;
 				area[7] = true;
 			}
-			if (GUI.Button(new Rect(180, 410+20 * bc++, 100, 20), ST.右 + ST.半球))
+			if (GUI.Button(new Rect(180, h + 10 +20 * bc++, 100, 20), ST.右 + ST.半球))
 			{
 				AreaFalse();
 				area[0] = true;
@@ -531,15 +591,15 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				area[6] = true;
 			}
 			bc = 1;
-			area[0] = GUI.Toggle(new Rect(300, 420+20 * bc++, 100, 20), area[0], $"1:{ST.东},{ST.北},{ST.右}");
-			area[1] = GUI.Toggle(new Rect(300, 420+20 * bc++, 100, 20), area[1], $"2:{ST.东},{ST.北},{ST.左}");
-			area[2] = GUI.Toggle(new Rect(300, 420+20 * bc++, 100, 20), area[2], $"3:{ST.东},{ST.南},{ST.右}");
-			area[3] = GUI.Toggle(new Rect(300, 420+20 * bc++, 100, 20), area[3], $"4:{ST.东},{ST.南},{ST.左}");
+			area[0] = GUI.Toggle(new Rect(300, h + 20 +20 * bc++, 100, 20), area[0], $"1:{ST.东},{ST.北},{ST.右}");
+			area[1] = GUI.Toggle(new Rect(300, h + 20 +20 * bc++, 100, 20), area[1], $"2:{ST.东},{ST.北},{ST.左}");
+			area[2] = GUI.Toggle(new Rect(300, h + 20 +20 * bc++, 100, 20), area[2], $"3:{ST.东},{ST.南},{ST.右}");
+			area[3] = GUI.Toggle(new Rect(300, h + 20 +20 * bc++, 100, 20), area[3], $"4:{ST.东},{ST.南},{ST.左}");
 			bc = 1;								  
-			area[4] = GUI.Toggle(new Rect(400, 420+20 * bc++, 100, 20), area[4], $"5:{ST.西},{ST.北},{ST.右}");
-			area[5] = GUI.Toggle(new Rect(400, 420+20 * bc++, 100, 20), area[5], $"6:{ST.西},{ST.北},{ST.左}");
-			area[6] = GUI.Toggle(new Rect(400, 420+20 * bc++, 100, 20), area[6], $"7:{ST.西},{ST.南},{ST.右}");
-			area[7] = GUI.Toggle(new Rect(400, 420+20 * bc++, 100, 20), area[7], $"8:{ST.西},{ST.南},{ST.左}");
+			area[4] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[4], $"5:{ST.西},{ST.北},{ST.右}");
+			area[5] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[5], $"6:{ST.西},{ST.北},{ST.左}");
+			area[6] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[6], $"7:{ST.西},{ST.南},{ST.右}");
+			area[7] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[7], $"8:{ST.西},{ST.南},{ST.左}");
 			if (!isAreaSelect)
 			{
 				GUI.Label(new Rect(840, 10, 250, haveItemCount * 16), haveItem, haveStyle);
@@ -556,7 +616,41 @@ public class CopyPlanetFactory : BaseUnityPlugin
 
 		}
 
+		if(GUI.Button(new Rect(60, 0, 20, 20), "+"))
+        {
+			ImgHeight += 20;
+			rect.height += 20;
+			rect.width += 40;
+			RefreshImg();
+		}
+		if (GUI.Button(new Rect(80, 0, 20, 20), "-"))
+		{
+			if (ImgHeight > 400)
+			{
+				ImgHeight -= 20;
+				rect.height -= 20;
+				rect.width -= 40;
+				RefreshImg();
+			}
+		}
+		if (GUI.Button(new Rect(100, 0, 20, 20), "0"))
+		{
+			ImgHeight = 400;
+			rect.height =600;
+			rect.width =1000;
+			RefreshImg();
+		}
 		GUI.DragWindow(new Rect(0, 0, 10000, 10000));
+	}
+
+	void RefreshImg()
+    {
+		PlanetFactoryImg.imgh = ImgHeight;
+		RectImg.imgh = ImgHeight;
+		if (isLookLocal)
+			localImg.Fresh(GetFactory());
+		else if (SelectData != null)
+			SelectData.FreshImg(); 
 	}
 
 
@@ -631,18 +725,18 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	[HarmonyPatch(typeof(GameData), "GameTick")]
 	static void getInfo(GameData __instance)
 	{
-		if (__instance != null && __instance.mainPlayer != null && __instance.mainPlayer.planetData != null)
-		{
-			PlanetData planetData = __instance.mainPlayer.planetData;
-			if (planetData.factory != null)
-			{
-				int count = FData.Data.Count;
-				info = $"{ST.复制建筑}：{count}\n{ST.成功}：{buildS} {ST.重叠}：{buildF1}" +
-					(PastIngData != null?$"\n【-{ST.正在复制}-】\n":"")+
-					(FData.Data.CheckBeltData.Count>0?$"\n无出货传送带{FData.Data.CheckBeltData.Count}":"")+
-					$"\n暂时忽略地形碰撞检测\n";
-			}
-		}
+		//if (__instance != null && __instance.mainPlayer != null && __instance.mainPlayer.planetData != null)
+		//{
+		//	PlanetData planetData = __instance.mainPlayer.planetData;
+		//	if (planetData.factory != null)
+		//	{
+		//		int count = FData.Data.Count;
+		//		info = $"{ST.复制建筑}：{count}\n{ST.成功}：{buildS} {ST.重叠}：{buildF1}" +
+		//			(PastIngData != null?$"\n【-{ST.正在复制}-】\n":"")+
+		//			(FData.Data.CheckBeltData.Count>0?$"\n无出货传送带{FData.Data.CheckBeltData.Count}":"")+
+		//			$"\n暂时忽略地形碰撞检测\n";
+		//	}
+		//}
 		if (isDebug)
 		{
 			if (CheckData())
@@ -707,6 +801,23 @@ public class CopyPlanetFactory : BaseUnityPlugin
                             }
                         }
                     }
+                    if (ce.splitterId > 0)
+                    {
+						var cd = player.planetData.factory.cargoTraffic.splitterPool[ce.splitterId];
+						Buginfo += "\nA:"+cd.beltA;
+						Buginfo += "\nB:"+cd.beltB;
+						Buginfo += "\nC:"+cd.beltC;
+						Buginfo += "\nD:"+cd.beltD;
+						Buginfo += "\no0:"+cd.output0;
+						Buginfo += "\no1:"+cd.output1;
+						Buginfo += "\no2:"+cd.output2;
+						Buginfo += "\no3:"+cd.output3;
+						Buginfo += "\ni0:"+cd.input0;
+						Buginfo += "\ni1:"+cd.input1;
+						Buginfo += "\ni2:"+cd.input2;
+						Buginfo += "\ni3:"+cd.input3;
+
+					}
                     //if (ejId > 0)
                     //{
                     //	var da = player.factory.cargoTraffic.splitterPool[ejId];
@@ -735,9 +846,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			PastIngData = null;
         }
     }
-
-
-	private static bool isShow = true;
 
 	static bool CheckData()
     {
@@ -768,7 +876,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	public static int buildF2 = 0;
 	public static bool isShowItem = false;
 	public static bool confirmStop = false;
-	private static int totalPage = 0;
 	private static int atPage = 0;
 	private static string info1 = string.Empty;
 	private static string info = string.Empty;

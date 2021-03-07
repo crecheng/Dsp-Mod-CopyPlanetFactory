@@ -10,6 +10,7 @@ public class PlanetFactoryImg
 	private Texture2D Img;
 	private float x = -1;
 	private float y = -1;
+	public static int imgh = 400;
 	public PlanetFactoryImg()
 	{
 
@@ -18,7 +19,7 @@ public class PlanetFactoryImg
 
 	public void Init()
 	{
-		Img = new Texture2D(801, 400);
+		Img = new Texture2D(imgh*2+1, imgh);
 	}
 
 
@@ -29,18 +30,19 @@ public class PlanetFactoryImg
 			return Img;
 		this.x = x;
 		this.y = y;
+		return Fresh(data);
+	}
 
-		Texture2D temp = new Texture2D(400,400);
-		temp.ReadPixels(new Rect(0, 0, 40, 40), 0, 0);
-		
-		Img = new Texture2D(801, 400);
-		for (int i = 1; i <= 400; i++)
+	public Texture2D Fresh(FactoryData data)
+    {
+		Img = new Texture2D(imgh * 2 + 1, imgh);
+		for (int i = 1; i <= imgh; i++)
 		{
-			Img.SetPixel(401, i, Color.black);
+			Img.SetPixel(imgh + 1, i, Color.black);
 		}
-		List<Vector3> belt = new List<Vector3>();	
-		foreach(var d in data.AllData)
-        {
+		List<Vector3> belt = new List<Vector3>();
+		foreach (var d in data.AllData)
+		{
 			switch (d.type)
 			{
 				case EDataType.Assembler:
@@ -70,55 +72,58 @@ public class PlanetFactoryImg
 		Img.Apply();
 		return Img;
 	}
-
 	public Texture2D GetImg(int x, int y,PlanetFactory factory)
 	{
 		if (this.x == x && this.y == y)
 			return Img;
 		this.x = x;
 		this.y = y;
+		return Fresh(factory);
+		
+	}
 
-		Img = new Texture2D(801, 400);
-        if (factory == null)
-        {
-			return Img;
-        }
-		for (int i = 1; i <= 400; i++)
+	public Texture2D Fresh(PlanetFactory factory)
+    {
+		Img = new Texture2D(imgh * 2 + 1, imgh);
+		if (factory == null)
 		{
-			Img.SetPixel(401, i, Color.black);
+			return Img;
+		}
+		for (int i = 1; i <= imgh; i++)
+		{
+			Img.SetPixel(imgh + 1, i, Color.black);
 		}
 
-		for(int i = 1; i < factory.entityCursor; i++)
-        {
+		for (int i = 1; i < factory.entityCursor; i++)
+		{
 			var data = factory.entityPool[i];
-			if (data.protoId > 0) 
+			if (data.protoId > 0)
 			{
-                if (data.assemblerId > 0)
-                {
+				if (data.assemblerId > 0)
+				{
 					SetBuildColor(GetImgPos(data.pos), new Color(232f / 256f, 253 / 256f, 77 / 256f), -1, 1, -1, 1);
 				}
 				else if (data.powerGenId > 0)
-                {
+				{
 					SetBuildColor(GetImgPos(data.pos), new Color(108f / 256f, 2f / 256f, 208f / 256f), -1, 1, -1, 1);
 				}
 				else if (data.beltId > 0)
-                {
+				{
 					SetBuildColor(GetImgPos(data.pos), new Color(24f / 256f, 194 / 256f, 254 / 256f), 0, 1);
 				}
 				else if (data.stationId > 0)
-                {
+				{
 					SetBuildColor(GetImgPos(data.pos), new Color(218f / 256f, 83f / 256f, 2f / 256f), -3, 3, -3, 3);
 				}
 				else if (data.labId > 0)
-                {
+				{
 					SetBuildColor(GetImgPos(data.pos), Color.white, -2, 2, -2, 2);
 				}
 			}
-        }
+		}
 		Img.Apply();
 		return Img;
 	}
-
 	public void SelectBuild(PlanetFactory factory,List<int> Id,int x1,int x2,int y1,int y2)
     {
 		int left = Math.Min(x1, x2);
@@ -141,12 +146,12 @@ public class PlanetFactoryImg
 	bool BuildIsInRect(Vector3 pos,int left,int right,int top,int bottom)
     {
 		var p = GetImgPos(pos);
-		int x = (int)(p.z + 200);
+		int x = (int)(p.z + imgh/2);
 		if (p.x < 0)
 		{
-			x = -x + 801;
+			x = -x + imgh*2+1;
 		}
-		int y = (int)(p.y + 200);
+		int y = (int)(p.y + imgh/2);
         if (x >= left && x <= right && y >= top && y <= bottom)
         {
 			return true;
@@ -159,12 +164,12 @@ public class PlanetFactoryImg
 
 	void SetBuildColor(Vector3 pos, Color c, int left = 0, int right = 0, int top = 0, int bottom = 0)
 	{
-		int x = (int)(pos.z + 200); ;
+		int x = (int)(pos.z + imgh / 2); ;
 		if (pos.x < 0)
 		{
-			x = -x + 801;
+			x = -x + imgh * 2+1;
 		}
-		int y = (int)(pos.y + 200);
+		int y = (int)(pos.y + imgh / 2);
 		FullRect(x, y, c, left, right, top, bottom);
 	}
 
