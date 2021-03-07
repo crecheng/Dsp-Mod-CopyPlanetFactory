@@ -418,15 +418,18 @@ public class FactoryData
 		for (int i = 1; i < factory.factoryStorage.storageCursor; i++)
 		{
 			var d = factory.factoryStorage.storagePool[i];
-			if (d.entityId > 0)
+			if (d != null)
 			{
-				if (d.next == 0)
+				if (d.entityId > 0)
 				{
-					storge0.Add(i);
-				}
-				else
-				{
-					storgeKey.Add(d.next, i);
+					if (d.next == 0)
+					{
+						storge0.Add(i);
+					}
+					else
+					{
+						storgeKey.Add(d.next, i);
+					}
 				}
 			}
 		}
