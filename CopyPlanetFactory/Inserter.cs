@@ -48,6 +48,10 @@ public class Inserter : MyPreBuildData
 				outConn = int.Parse(s[21]);
 				inConn = int.Parse(s[22]);
 			}
+            if (s.Length > 23)
+            {
+				oldEId = int.Parse(s[23]);
+            }
 		}
 	}
 
@@ -55,7 +59,7 @@ public class Inserter : MyPreBuildData
     {
         string s = $"{ pd.protoId},{pd.modelIndex},{pd.pos.x},{pd.pos.y},{pd.pos.z},{pd.rot.x},{pd.rot.y},{pd.rot.z},{pd.rot.w}";
         s += $",{pd.pos2.x},{pd.pos2.y},{pd.pos2.z},{pd.rot2.x},{pd.rot2.y},{pd.rot2.z},{pd.rot2.w},{pd.filterId}";
-        s += $",{inserter.pickTarget},{inserter.insertTarget},{inserter.stt},{inserter.delay},{outConn},{inConn}";
+        s += $",{inserter.pickTarget},{inserter.insertTarget},{inserter.stt},{inserter.delay},{outConn},{inConn},{oldEId}";
         return s;
     }
 

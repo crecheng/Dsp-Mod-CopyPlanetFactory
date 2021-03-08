@@ -74,10 +74,6 @@ public class FactoryTask
 	public bool playerHaveBeltItem { private set; get;  }
 	public bool playerHaveInserterItem { private set; get;  }
 
-	public int buildS = 0;
-	public int buildF = 0;
-	public int buildF1 = 0;
-	public int buildF2 = 0;
 	public PlanetFactory planetFactory;
 	public Player player;
 	public bool haveInserter;
@@ -178,10 +174,6 @@ public class FactoryTask
 		WaitNeedItem = new Dictionary<int, int>();
 		WaitItemBuild = new List<MyPreBuildData>();
 		error = false;
-		buildS = 0;
-		buildF = 0;
-		buildF1 = 0;
-		buildF2 = 0;
 		BeltCount = 0;
 		RotationType = ERotationType.Null;
 		playerHaveBeltItem = true;
@@ -212,10 +204,6 @@ public class FactoryTask
 		WaitNeedItem.Clear();
 		WaitItemBuild.Clear();
 		GetWaitNeedItem = string.Empty;
-		buildS = 0;
-		buildF = 0;
-		buildF1 = 0;
-		buildF2 = 0;
 		BeltCount = 0;
 		error = false;
 		errorMsg = string.Empty;
@@ -440,78 +428,86 @@ public class FactoryTask
 	/// <param name="player1">玩家</param>
 	public void PasteDate(Player player1 ,bool[] SelectArea,ERotationType rotationType=ERotationType.Null)
 	{
-        if (haveAddPasteData)
-        {
-			return;
-        }
-        else
-        {
-			haveAddPasteData = true;
-        }
-		if (CheckData())
+		try
 		{
-			player = player1;
-			if (player.planetData.type == EPlanetType.Gas)
-				return;
-			var factory = player.planetData.factory;
-			planetFactory = factory;
-			//粘贴前清空数据
-			PasteClear();
-			RotationType = rotationType;
-			area = SelectArea;
-			//复制当前星球实体位置数据，用于进行重叠检测
-			for (int i = 1; i < factory.entityCursor; i++)
+			if (haveAddPasteData)
 			{
-				var pos = factory.entityPool[i].pos;
-				float x = ((int)(pos.x * 10)) / 10f;
-				float y = ((int)(pos.y * 10)) / 10f;
-				float z = ((int)(pos.z * 10)) / 10f;
-				try
-				{
-					int p = (int)(x * 1000000 + y * 1000 + z);
-					if(!posSet.ContainsKey(p))
-						posSet.Add(p, i);
-					long lp = GetPosLong(pos);
-					if(!floatPosSet.ContainsKey(lp))
-						floatPosSet.Add(lp, i);
-                }
-                catch(Exception e)
-                {
-					Debug.LogError("AddPosSetError");
-					Debug.LogError(e.Message);
-				}
+				return;
 			}
-			foreach (var d in Data.AllData)
-            {
-				if (IsInArea(d.Pos, area))
+			else
+			{
+				haveAddPasteData = true;
+			}
+			if (CheckData())
+			{
+				player = player1;
+				if (player.planetData.type == EPlanetType.Gas)
+					return;
+				var factory = player.planetData.factory;
+				planetFactory = factory;
+				//粘贴前清空数据
+				PasteClear();
+				RotationType = rotationType;
+				area = SelectArea;
+				//复制当前星球实体位置数据，用于进行重叠检测
+				for (int i = 1; i < factory.entityCursor; i++)
 				{
-					if (d.isInserter)
+					var pos = factory.entityPool[i].pos;
+					float x = ((int)(pos.x * 10)) / 10f;
+					float y = ((int)(pos.y * 10)) / 10f;
+					float z = ((int)(pos.z * 10)) / 10f;
+					try
 					{
-						var dd = (Inserter)d.GetCopy();
-						PreInserterData.Add(dd);
+						int p = (int)(x * 1000000 + y * 1000 + z);
+						if (!posSet.ContainsKey(p))
+							posSet.Add(p, i);
+						long lp = GetPosLong(pos);
+						if (!floatPosSet.ContainsKey(lp))
+							floatPosSet.Add(lp, i);
 					}
-					else if (d.isBelt)
-                    {
-						Belt dd = (Belt)d.GetCopy();
-						belts.Enqueue(dd);
+					catch (Exception e)
+					{
+						Debug.LogError("AddPosSetError");
+						Debug.LogError(e.Message);
 					}
-                    else
-                    {
-						AddPasteData(player1, d);
-                    }
+				}
+				foreach (var d in Data.AllData)
+				{
+					if (IsInArea(d.Pos, area))
+					{
+						if (d.isInserter)
+						{
+							var dd = (Inserter)d.GetCopy();
+							PreInserterData.Add(dd);
+						}
+						else if (d.isBelt)
+						{
+							Belt dd = (Belt)d.GetCopy();
+							belts.Enqueue(dd);
+						}
+						else
+						{
+							AddPasteData(player1, d);
+						}
+					}
+
 				}
 
-            }
-			
-			if (preIdMap.Count == 0)
-			{
-				TryBuildInserter();
+				if (preIdMap.Count == 0)
+				{
+					TryBuildInserter();
+				}
+				belts.Sort();
+				BeltQueueDequeue();
+				SetWaitItemString();
 			}
-			belts.Sort();
-			BeltQueueDequeue();
-			SetWaitItemString();
-		}
-		haveAddPasteData = false;
+			haveAddPasteData = false;
+        }
+        catch(Exception ex)
+        {
+			error = true;
+			errorMsg = ex.Message + "\n" + ex.StackTrace;
+        }
 	}
 
 
@@ -558,13 +554,15 @@ public class FactoryTask
 	/// <param name="eid">eID</param>
 	public void Building(int preId, int eid)
 	{
-		if (preIdMap.ContainsKey(preId))
+		try
 		{
-			var d = preIdMap[preId];
-			d.newEId = eid;
-			try
+			if (preIdMap.ContainsKey(preId))
 			{
-				eIdMap.Add(d.oldEId, eid);
+				var d = preIdMap[preId];
+				d.newEId = eid;
+
+				if (d.type != EDataType.Inserter)
+					eIdMap.Add(d.oldEId, eid);
 				//Debug.Log(d.isBelt);
 				bool flag = d.isBelt;
 
@@ -601,17 +599,18 @@ public class FactoryTask
 				}
 
 				TryBuildInserter();
+
 			}
-			catch(Exception e)
-            {
-				error = true;
-				errorMsg = e.Message + "\n" + e.StackTrace;
-            }
+			else if (preIdMap.Count == 0)
+			{
+				TryBuildInserter();
+				TryBeltConn();
+			}
 		}
-		else if (preIdMap.Count == 0)
+		catch (Exception e)
 		{
-			TryBuildInserter();
-			TryBeltConn();
+			error = true;
+			errorMsg = e.Message + "\n" + e.StackTrace;
 		}
 	}
 
@@ -818,10 +817,9 @@ public class FactoryTask
 					if (player.planetData.factory.entityPool[eid].protoId == d.ProtoId)
                     {
 						d.newEId = eid;
-						eIdMap.Add(d.oldEId, eid);
+						if(d.type!=EDataType.Inserter)
+							eIdMap.Add(d.oldEId, eid);
                     }
-					buildF1++;
-					buildF++;
 					return 2;
 				}
 			}
@@ -835,7 +833,8 @@ public class FactoryTask
 					if (player.planetData.factory.entityPool[eid].protoId == d.ProtoId)
 					{
 						d.newEId = eid;
-						eIdMap.Add(d.oldEId, eid);
+						if (d.type != EDataType.Inserter)
+							eIdMap.Add(d.oldEId, eid);
 					}
 					if (player.planetData.factory.entityPool[eid].beltId > 0)
 					{
@@ -847,7 +846,6 @@ public class FactoryTask
 			pId = player.factory.AddPrebuildDataWithComponents(d.pd);
 			int e = player.planetData.factory.prebuildPool[pId].upEntity;
 			player.package.TakeItem(d.ProtoId, 1);
-			buildS++;
 			return 1;
         }
         else
@@ -867,8 +865,6 @@ public class FactoryTask
 			}
 			WaitItemBuild.Add(d);
 			AddWaitNeedIiem(d.ProtoId);
-			buildF2++;
-			buildF++;
 			return 0;
 		}
 

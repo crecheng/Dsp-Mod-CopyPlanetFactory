@@ -21,6 +21,83 @@ public class ST
         }
     }
 
+    public static string 加满
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "加满";
+            }
+            else
+            {
+                return "Full";
+            }
+        }
+    }
+
+
+    public static string 物流站
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "物流站";
+            }
+            else
+            {
+                return "Stations";
+            }
+        }
+    }
+
+    public static string 飞船
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "飞船";
+            }
+            else
+            {
+                return "Ship";
+            }
+        }
+    }
+
+    public static string 和
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "和";
+            }
+            else
+            {
+                return "and";
+            }
+        }
+    }
+
+    public static string 翘曲
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "翘曲";
+            }
+            else
+            {
+                return "Warper";
+            }
+        }
+    }
+
+
     public static string 移除
     {
         get

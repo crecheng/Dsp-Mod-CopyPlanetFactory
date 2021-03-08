@@ -370,6 +370,24 @@ public class FactoryData
 		CopyMultiLayerBuild(factory);
 	}
 
+	public int CheckAllData()
+    {
+		int haveError = -1;
+		HashSet<int> oldid = new HashSet<int>();
+		foreach(var d in AllData)
+        {
+            if (oldid.Contains(d.oldEId))
+            {
+				haveError = d.oldEId;
+				if (d.oldEId == 0)
+					Debug.Log(d.GetData());
+            }
+			oldid.Add(d.oldEId);
+			
+        }
+		return haveError;
+    }
+
 	public void CopyMultiLayerBuild(PlanetFactory factory,List<int> id=null)
     {
 		List<int> lab0 = new List<int>();

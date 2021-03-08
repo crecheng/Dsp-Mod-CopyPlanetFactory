@@ -175,6 +175,18 @@ public class MyUI
 		{
 			ControlPanel.SetActive(false);
 		});
+
+		var buttonHelp = ControlPanel.transform.Find("Help").GetComponent<Button>();
+		buttonHelp.onClick.AddListener(delegate
+		{
+			System.Diagnostics.Process.Start("https://www.bilibili.com/video/BV1gZ4y1w7RY");
+			buttonHelp.gameObject.SetActive(false);
+		});
+		if(Localization.language != Language.zhCN)
+        {
+			buttonHelp.gameObject.SetActive(false);
+        }
+
 		//加载翻译
 		buttonCopy.text.text = ST.复制;
 		buttonPaste.text.text = ST.粘贴;

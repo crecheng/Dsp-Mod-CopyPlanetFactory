@@ -125,6 +125,8 @@ public class Station:MyPreBuildData
 		bool isMissing = false;
 		int sId = factory.entityPool[newEId].stationId;
 		StationComponent sc = factory.transport.stationPool[sId];
+		if (sc == null)
+			return false;
 		for (int i = 0; i < sc.slots.Length; i++)
 		{
 			int oldBeltId = slots[i].beltId;
@@ -156,6 +158,7 @@ public class Station:MyPreBuildData
 
     public override void SetData(PlanetFactory factory, int eId)
     {
+
 		int sId = factory.entityPool[eId].stationId;
 		var sc = factory.transport.stationPool[sId];
 		int minLen = Math.Min(sc.storage.Length, storage.Length);

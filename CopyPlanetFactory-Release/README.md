@@ -71,3 +71,5 @@ Divided by the equator, north and south, left and right
 2.1.0 修复bug，加入区域删除，加入箱子复制
 
 2.1.1 修复bug
+
+2.1.3 修复bug

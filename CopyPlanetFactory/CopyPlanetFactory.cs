@@ -13,7 +13,7 @@ using UnityEngine.UI;
 public class CopyPlanetFactory : BaseUnityPlugin
 {
 	
-	public const string Version = "2.1.1";
+	public const string Version = "2.1.3";
 	public const bool isDebug = false;
 	public static bool isLoad = false;
 	static MyUI ui;
@@ -23,10 +23,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	public Texture2D RedRectY;
 	public GUIStyle rectStyle;
 	public static FactoryTask PastIngData = null;
-	public static int buildS = 0;
-	public static int buildF = 0;
-	public static int buildF1 = 0;
-	public static int buildF2 = 0;
 	public static bool isShowItem = false;
 	public static bool confirmStop = false;
 	private static int atPage = 0;
@@ -199,10 +195,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		if (player != null && PastIngData == null)
 		{
 			FData.PasteDate(player, area);
-			buildS = FData.buildS;
-			buildF = FData.buildF;
-			buildF1 = FData.buildF1;
-			buildF2 = FData.buildF2;
 			PastIngData = FData;
 		}
 
@@ -233,6 +225,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
             }
 			isAreaSelect = false;
 			SelectData = DataList[index];
+			FData.Data = SelectData;
 			return DataList[index];
         }
 		return null;
@@ -490,6 +483,10 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			{
 				RemoverAllBuilding();
 			}
+			if(GUI.Button(new Rect(750, h + 80, 120, 40), $"{ST.加满}{ST.o}{ST.物流站} {ST.飞船}{ST.和}{ST.翘曲}"))
+			{
+				AddShip();
+            }
 		}
         if (CheckData()&&isLookLocal)
         {
@@ -623,6 +620,10 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			area[5] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[5], $"6:{ST.西},{ST.北},{ST.左}");
 			area[6] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[6], $"7:{ST.西},{ST.南},{ST.右}");
 			area[7] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[7], $"8:{ST.西},{ST.南},{ST.左}");
+			//if(GUI.Button(new Rect(400, h + 20 + 20 * bc++, 100, 40), tempstring))
+   //         {
+			//	tempstring= SelectData.CheckAllData().ToString();
+   //         }
 			if (!isAreaSelect)
 			{
 				GUI.Label(new Rect(840, 10, 250, haveItemCount * 16), haveItem, haveStyle);
@@ -676,7 +677,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			SelectData.FreshImg(); 
 	}
 
-
+	static string tempstring = "";
 
 	private void PasteData(FactoryData data, ERotationType rotationType = ERotationType.Null)
 	{
@@ -686,10 +687,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			FactoryTask task = new FactoryTask(data);
 
 			task.PasteDate(player, area, rotationType);
-			buildS = task.buildS;
-			buildF = task.buildF;
-			buildF1 = task.buildF1;
-			buildF2 = task.buildF2;
 			info = data.Name + ST.粘贴 + ST.成功;
 			PastIngData = task;
 			if (PastIngData.WaitBuildCount > 0)
@@ -857,6 +854,83 @@ public class CopyPlanetFactory : BaseUnityPlugin
 
                 }
 
+			}
+		}
+	}
+
+	void AddShip()
+	{
+		var factory = GetFactory();
+		if (factory != null)
+		{
+
+			var player = GameMain.mainPlayer;
+			for (int i = 1; i < factory.transport.stationCursor; i++)
+			{
+				var sc = factory.transport.stationPool[i];
+				if (sc != null)
+				{
+					ItemProto itemProto2 = LDB.items.Select((int)factory.entityPool[sc.entityId].protoId);
+					if (!sc.isCollector)
+					{
+						int item1 = 5001;
+
+						int max = (itemProto2 == null) ? 10 : itemProto2.prefabDesc.stationMaxDroneCount;
+						int have = sc.idleDroneCount + sc.workDroneCount;
+						int need = max - have;
+						if (need < 0)
+						{
+							need = 0;
+						}
+						if (need > 0)
+						{
+							int phave = player.package.GetItemCount(item1);
+							if (phave >= need)
+								sc.idleDroneCount += need;
+							player.package.TakeItem(item1, need);
+						}
+					}
+
+					if (sc.isStellar && !sc.isCollector)
+					{
+						int item2 = 5002;
+						int max = (itemProto2 == null) ? 10 : itemProto2.prefabDesc.stationMaxShipCount;
+						int have = sc.idleShipCount + sc.workShipCount;
+						int need = max - have;
+						if (need < 0)
+						{
+							need = 0;
+						}
+						if (need > 0)
+						{
+							int phave = player.package.GetItemCount(item2);
+							if (phave >= need)
+								sc.idleShipCount += need;
+							player.package.TakeItem(item2, need);
+						}
+					}
+
+					if (sc.isStellar)
+					{
+
+						int item3 = 1210;
+						int max = 50;
+						int have = sc.warperCount;
+						int need = max - have;
+						if (need < 0)
+						{
+							need = 0;
+						}
+
+						if (need > 0)
+						{
+							int phave = player.package.GetItemCount(item3);
+							if (phave >= need)
+								sc.warperCount += need;
+							player.package.TakeItem(item3, need);
+						}
+					}
+				}
 			}
 		}
 	}
