@@ -127,5 +127,45 @@ public static class Common
 				storage.TakeItem(ItemId, 1);
 		}
 	}
+
+	/// <summary>
+	/// 移除建筑
+	/// </summary>
+	/// <param name="player">玩家</param>
+	/// <param name="factory">工厂</param>
+	/// <param name="objId">实体id/预建筑id</param>
+	/// <returns></returns>
+	public static bool RemoveBuild(Player player, PlanetFactory factory, int objId)
+	{
+		try
+		{
+			if (player.package.isFull)
+			{
+				UIRealtimeTip.Popup(ST.背包不足);
+				return false;
+			}
+			int num = -objId;
+			ItemProto itemProto=null;
+			if (objId > 0)
+			{
+				 itemProto= LDB.items.Select((int)factory.entityPool[objId].protoId);
+			}
+            if (num > 0)
+            {
+				itemProto = LDB.items.Select((int)factory.prebuildPool[num].protoId);
+            }
+			int itemId = (itemProto == null) ? 0 : itemProto.ID;
+			factory.DestructFinally(player, objId, ref itemId);
+			player.package.AddItemStacked(itemId, 1);
+			UIItemup.Up(itemId, 1);
+			return true;
+		}
+		catch (Exception e)
+		{
+			Debug.LogError(e.Message);
+			Debug.LogError(e.StackTrace);
+			return false;
+		}
+	}
 }
 

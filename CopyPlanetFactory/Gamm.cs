@@ -64,24 +64,6 @@ public class Gamm : MyPreBuildData
         factory.powerSystem.genPool[factory.entityPool[eId].powerGenId].productId = produceId;
     }
 
-    public override bool ConnBelt(PlanetFactory factory, Dictionary<int, int> BeltEIdMap)
-    {
-        Common.ReadObjectConn(conn0, out bool isOut1, out int Belt1, out int slot);
-        Common.ReadObjectConn(conn1, out bool isOut2, out int Belt2, out int slot2);
-        if (Belt1 == 0 || BeltEIdMap.ContainsKey(Belt1))
-        {
-            if (Belt2 == 0 || BeltEIdMap.ContainsKey(Belt2))
-            {
-                if (Belt1 > 0)
-                    factory.WriteObjectConn(newEId, 0, isOut1, BeltEIdMap[Belt1], isOut1 ? 1 : 0);
-                if (Belt2 > 0)
-                    factory.WriteObjectConn(newEId, 1, isOut2, BeltEIdMap[Belt2], isOut2 ? 1 : 0);
-                return true;
-            }
-        }
-        return false; 
-    }
-
     public override bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
     {
         Common.ReadObjectConn(conn0, out bool isOut1, out int Belt1, out int slot);

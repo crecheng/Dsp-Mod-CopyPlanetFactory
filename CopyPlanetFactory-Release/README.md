@@ -8,7 +8,7 @@
 
 暂时没有碰撞检测，只有重叠检测
 
-补充物品：允许你将缺少物品补齐后，再次补全蓝图
+会自动从当前星球的箱子获取建造物品
 
 保存的数据文件在 Dyson Sphere Program\BepInEx\config\PlanetFactoryData
 
@@ -19,7 +19,7 @@ Then go to another planet and press "paste" to copy the building
 
 The test version has no collision detection for the time being, only overlap detection
 
-replenish Item: Allow you to replenish the blueprint after completing the missing items
+Will automatically obtain construction items from the chests of the current planet
 
 data file in Dyson Sphere Program\BepInEx\config\PlanetFactoryData
 
@@ -75,3 +75,7 @@ Divided by the equator, north and south, left and right
 2.1.3 修复bug
 
 2.1.5 更新传送带建造逻辑
+
+2.2.0 更新连接逻辑，取消补充物品功能，但是会从当前星球的箱子里获取物品
+
+2.2.1 物品不足建无法粘贴，加入撤销功能

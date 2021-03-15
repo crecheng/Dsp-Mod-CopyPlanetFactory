@@ -31,10 +31,6 @@ public class MyUI
 	/// </summary>
 	public ButtonGroup buttonSave;
 	/// <summary>
-	/// 停止按钮组
-	/// </summary>
-	public ButtonGroup buttonStop;
-	/// <summary>
 	/// 当前星球按钮组
 	/// </summary>
 	public ButtonGroup buttonLocal;
@@ -43,9 +39,9 @@ public class MyUI
 	/// </summary>
 	public ButtonGroup buttonClose;
 	/// <summary>
-	/// 补充物品按钮组
+	/// 撤销任务按钮组
 	/// </summary>
-	public ButtonGroup buttonRItem;
+	public ButtonGroup buttonZ;
 	/// <summary>
 	/// 保存名字输入框
 	/// </summary>
@@ -136,7 +132,7 @@ public class MyUI
 		var rect = ControlPanel.transform.GetComponent<RectTransform>();
 		ControlButton.button.onClick.AddListener(delegate
 		{
-			TaskInfo.gameObject.SetActive(!ControlPanel.activeSelf);
+			//TaskInfo.gameObject.SetActive(!ControlPanel.activeSelf);
 			ControlPanel.SetActive(!ControlPanel.activeSelf);
 			
 		});
@@ -158,23 +154,33 @@ public class MyUI
 		TaskInfo = instance.transform.Find("TaskInfo").GetComponent<Text>();
 		//加载拖动组件
 		TaskInfo.gameObject.AddComponent<Drag>();
+		//获取任务面板关闭按钮
+		var closeTask= TaskInfo.GetComponentInChildren<Button>();
+
+		closeTask.onClick.AddListener(delegate
+		{
+			//关闭任务面板
+			TaskInfo.gameObject.SetActive(false);
+		});
 		TaskInfoRect = TaskInfo.GetComponent<RectTransform>();
 		TaskInfoRect.sizeDelta = new Vector2(TaskInfoRect.sizeDelta.x, Screen.height *0.7f);
 		firstPos2 = TaskInfoRect.position;
+		//暂时关闭，只显示错误信息
 		TaskInfo.gameObject.SetActive(false);
 		//设置按钮实例
 		buttonCopy = new ButtonGroup(GetButton(cpf, "ButtonCopy"));
 		buttonPaste = new ButtonGroup(GetButton(cpf, "ButtonPaste"));
 		buttonClear = new ButtonGroup(GetButton(cpf, "ButtonClear"));
 		buttonSave = new ButtonGroup(GetButton(cpf, "ButtonSave"));
-		buttonStop = new ButtonGroup(GetButton(cpf, "ButtonStop"));
 		buttonLocal = new ButtonGroup(GetButton(cpf, "ButtonLocal"));
 		buttonClose = new ButtonGroup(GetButton(cpf, "ButtonClose"));
-		buttonRItem = new ButtonGroup(GetButton(cpf, "ButtonRItem"));
+		buttonZ = new ButtonGroup(GetButton(cpf, "ButtonZ"));
 		buttonClose.button.onClick.AddListener(delegate
 		{
 			ControlPanel.SetActive(false);
 		});
+
+
 
 		var buttonHelp = ControlPanel.transform.Find("Help").GetComponent<Button>();
 		buttonHelp.onClick.AddListener(delegate
@@ -193,8 +199,7 @@ public class MyUI
 		buttonClear.text.text = ST.清空;
 		buttonSave.text.text = ST.保存;
 		buttonLocal.text.text = ST.当前星球;
-		buttonRItem.text.text = ST.补充物品;
-		buttonStop.text.text = ST.强制停止;
+		buttonZ.text.text = ST.撤销任务;
 
 		SaveName = ControlPanel.transform.Find("SaveText").GetComponent<InputField>();
 		SaveName.text = string.Empty;

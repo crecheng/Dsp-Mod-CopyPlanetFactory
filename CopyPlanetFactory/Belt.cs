@@ -77,46 +77,6 @@ public class Belt : MyPreBuildData
 		return s;
 	}
 
-	public override bool ConnBelt(PlanetFactory factory, Dictionary<int, int> BeltEIdMap)
-	{
-		if (beltOut == 0 || BeltEIdMap.ContainsKey(beltOut))
-		{
-			if (beltIn1 == 0 || BeltEIdMap.ContainsKey(beltIn1))
-				if (beltIn2 == 0 || BeltEIdMap.ContainsKey(beltIn2))
-					if (beltIn3 == 0 || BeltEIdMap.ContainsKey(beltIn3))
-					{
-						int out1 = 0;
-						int in1 = 0;
-						int in2 = 0;
-						int in3 = 0;
-						if (BeltEIdMap.ContainsKey(beltOut))
-						{
-							int other = 0;
-							other = BeltEIdMap[beltOut];
-							out1 = factory.entityPool[other].beltId;
-							int otherSlot = Common.GetEmptyConn(factory, other, 1);
-							if (otherSlot > 0)
-								factory.WriteObjectConn(newEId, 0, true, other, otherSlot);
-						}
-						if (BeltEIdMap.ContainsKey(beltIn1))
-						{
-							in1 = factory.entityPool[BeltEIdMap[beltIn1]].beltId;
-						}
-						if (BeltEIdMap.ContainsKey(beltIn2))
-						{
-							in2 = factory.entityPool[BeltEIdMap[beltIn2]].beltId;
-						}
-						if (BeltEIdMap.ContainsKey(beltIn3))
-						{
-							in3 = factory.entityPool[BeltEIdMap[beltIn3]].beltId;
-						}
-						int beltId = factory.entityPool[newEId].beltId;
-						factory.cargoTraffic.AlterBeltConnections(beltId, out1, in1, in2, in3);
-						return true;
-					}
-		}
-		return false;
-	}
 
 	public override bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
 	{

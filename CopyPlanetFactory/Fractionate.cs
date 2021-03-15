@@ -51,44 +51,6 @@ public class Fractionate : MyPreBuildData
             newEId=newEId
         };
     }
-
-    public override bool ConnBelt(PlanetFactory factory, Dictionary<int, int> BeltEIdMap)
-    {
-
-        Common.ReadObjectConn(c0, out bool isOut0, out int Belt0, out int slot0);
-        Common.ReadObjectConn(c1, out bool isOut1, out int Belt1, out int slot1);
-        Common.ReadObjectConn(c2, out bool isOut2, out int Belt2, out int slot2);
-        if ((Belt1 == 0 || BeltEIdMap.ContainsKey(Belt1)) &&
-            (Belt2 == 0 || BeltEIdMap.ContainsKey(Belt2)) &&
-            (Belt0 == 0 || BeltEIdMap.ContainsKey(Belt0)))
-        {
-            int fId = factory.entityPool[newEId].fractionateId;
-            if (Belt0 > 0)
-            {
-                int belt = BeltEIdMap[Belt0];
-                int beltId = factory.entityPool[belt].beltId;
-                factory.WriteObjectConn(newEId, 0, isOut0,belt , isOut0 ? 1 : 0);
-                factory.factorySystem.SetFractionateBelt(fId, beltId, 0, isOut0);
-            }
-            if (Belt1 > 0)
-            {
-                int belt = BeltEIdMap[Belt1];
-                int beltId = factory.entityPool[belt].beltId;
-                factory.WriteObjectConn(newEId, 1, isOut1, belt, isOut1 ? 1 : 0);
-                factory.factorySystem.SetFractionateBelt(fId, beltId, 1, isOut1);
-            }
-            if (Belt2 > 0)
-            {
-                int belt = BeltEIdMap[Belt2];
-                int beltId = factory.entityPool[belt].beltId;
-                factory.WriteObjectConn(newEId, 2, isOut2, belt, isOut2 ? 1 : 0);
-                factory.factorySystem.SetFractionateBelt(fId, beltId, 2, isOut2);
-            }
-            return true;
-        }
-        return false;
-    }
-
     public override bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
     {
         Common.ReadObjectConn(c0, out bool isOut0, out int Belt0, out int slot0);

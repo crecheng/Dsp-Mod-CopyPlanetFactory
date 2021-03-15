@@ -36,6 +36,7 @@ public class MyPreBuildData
 	public bool isGamm;
 	public bool isSplitter;
 	public bool isNeedConn;
+	public bool isCancel;
 	/// <summary>
 	/// 建筑类型，由子类赋值
 	/// </summary>
@@ -63,6 +64,7 @@ public class MyPreBuildData
 		isGamm = false;
 		isNeedConn = false;
 		isSplitter = false;
+		isCancel = false;
 		type = EDataType.Null;
 	}
 
@@ -116,16 +118,6 @@ public class MyPreBuildData
 			oldEId = this.oldEId,
 			newEId = this.newEId
 		};
-    }
-	/// <summary>
-	/// 建筑连接传送带行为
-	/// </summary>
-	/// <param name="factory">工厂实例</param>
-	/// <param name="BeltEIdMap">传送带id映射</param>
-	/// <returns>是否完成连接</returns>
-	public virtual bool ConnBelt(PlanetFactory factory,Dictionary<int,int> BeltEIdMap)
-    {
-		return true;
     }
 
 	/// <summary>

@@ -12,7 +12,7 @@ using UnityEngine.UI;
 [BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory",CopyPlanetFactory.Version )]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
-	public const string Version = "2.1.6";
+	public const string Version = "2.2.1";
 	public const bool isDebug = false;
 	public static bool isLoad = false;
 	static MyUI ui;
@@ -87,40 +87,8 @@ public class CopyPlanetFactory : BaseUnityPlugin
 					tRect.sizeDelta = new Vector2(300f, 400f);
 					
 				}
-				else
-				{
-					info = "【正在复制】\n";
-					info += noItem + "\n";
-					ui.TaskInfo.color = Color.white;
-					var tRect = ui.TaskInfo.GetComponent<RectTransform>();
-					tRect.sizeDelta = new Vector2(102f, 330f);
-					info1 = (confirmStop ? $"【{ST.确认强制停止}?】\n" : "") +
-						(PastIngData.playerHaveBeltItem ? "" : $"【{ST.缺少传送带}!!!】\n") +
-						(PastIngData.playerHaveInserterItem ? "" : $"【{ST.缺少爪子}!!!】\n") +
-						$"【{PastIngData.Data.Name}】\n" +
-						$"{ST.正在建造}\n{PastIngData.preIdMap.Count}\n" +
-						$"{ST.建造完成}\n{PastIngData.eIdMapCount}\n" +
-						$"{ST.等待爪子}\n{PastIngData.PreInserterDateCount}\n" +
-						$"{ST.建造爪子}\n{PastIngData.preInserterMap.Count}\n" +
-						$"{ST.传送带队列}\n{PastIngData.BeltQueueCount}\n" +
-						$"{ST.等待物品}\n{PastIngData.WaitBuildCount}\n" +
-						$"{ST.等待连接传送带}\n{PastIngData.BuildBeltData.Count}\n" +
-						$"{ST.等待连接建筑}\n{PastIngData.NeedConnData.Count}\n";
-                    if (PastIngData.preIdMap.Count == 0&&PastIngData.WaitBuildCount==0&& tryConnTimes<10)
-                    {
-						PastIngData.TryConn();
-						tryConnTimes++;
-                    }
-				}
-				if (!PastIngData.Working)
-				{
-					PastIngData = null;
-					tryConnTimes = 0;
-				}
 			}
 			ui.TaskInfo.text = info+(info.Length>0?"\n-------\n":"")+ info1;
-			
-
 		}
 		
 	}
@@ -131,8 +99,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		ui.buttonPaste.SetOnclik(PasteData);
 		ui.buttonSave.SetOnclik(SaveData);
 		ui.buttonClear.SetOnclik(ClearData);
-		ui.buttonStop.SetOnclik(StopData);
-		ui.buttonRItem.SetOnclik(ReplenishItem);
 		ui.buttonLocal.SetOnclik(LocalImg);
 		ui.ControlButton.SetOnclik(delegate
 		{
@@ -171,6 +137,14 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				PageTo();
 			}
 		});
+		//点击撤销按钮
+		ui.buttonZ.SetOnclik(delegate
+		{
+			if (GameMain.mainPlayer != null&&PastIngData!=null)
+			{
+				PastIngData.CancelTask(GameMain.mainPlayer);
+			}
+		});
 	}
 	void CopyData()
 	{
@@ -194,6 +168,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		var player = GetPlayer();
 		if (player != null && PastIngData == null)
 		{
+
 			FData.PasteDate(player, area);
 			PastIngData = FData;
 		}
@@ -266,27 +241,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		isLookLocal = true;
 	}
 
-	void ReplenishItem()
-    {
-		if (PastIngData != null)
-		{
-			PastIngData.ReplenishItem();
-			if (PastIngData.WaitBuildCount > 0)
-			{
-				isShowItem = true;
-				noItem = PastIngData.GetWaitNeedItem;
-				noItemCount = PastIngData.GetWaitItemDCount;
-				haveItem = string.Empty;
-				haveItemCount = 0;
-			}
-			else
-			{
-				isShowItem = false;
-				noItem = string.Empty;
-				noItemCount = 0;
-			}
-		}
-	}
 
 
 	static void readFile()
@@ -367,7 +321,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
             {
 				if (factory.entityPool[i].protoId > 0)
 				{
-					if (!RemoveBuild(player, factory, i))
+					if (!Common.RemoveBuild(player, factory, i))
 						break;
 				}
             }
@@ -385,7 +339,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			{
 				if (factory.entityPool[i].protoId > 0)
 				{
-					if (!RemoveBuild(player, factory, i))
+					if (!Common.RemoveBuild(player, factory, i))
 						break;
 				}
 			}
@@ -393,29 +347,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		}
 	}
 
-	bool RemoveBuild(Player player, PlanetFactory factory, int eid)
-	{
-		try
-		{
-			if (player.package.isFull)
-			{
-				UIRealtimeTip.Popup(ST.背包不足);
-				return false;
-			}
-			ItemProto itemProto = LDB.items.Select((int)factory.entityPool[eid].protoId);
-			int itemId = (itemProto == null) ? 0 : itemProto.ID;
-			factory.DestructFinally(player, eid, ref itemId);
-			player.package.AddItemStacked(itemId, 1);
-			UIItemup.Up(itemId, 1);
-			return true;
-		}
-		catch (Exception e)
-		{
-			Debug.LogError(e.Message);
-			Debug.LogError(e.StackTrace);
-			return false;
-		}
-	}
+
 
 	static Texture2D windowsBorder = new Texture2D(0, 0);
 	static GUIContent windowContent = new GUIContent();
@@ -531,6 +463,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			int buttonH = 20;
 			if (GUI.Button(new Rect(10, h+30, buttonW, buttonH), ST.粘贴))
 			{
+
 				PasteData(SelectData, ERotationType.Null);
 			}
 			if (GUI.Button(new Rect(10, h + 50, buttonW, buttonH), ST.赤道 + "(Y)" + ST.镜像 + ST.粘贴))
@@ -685,21 +618,23 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		var player = GetPlayer();
 		if (player != null && PastIngData == null)
 		{
-			FactoryTask task = new FactoryTask(data);
-
-			task.PasteDate(player, area, rotationType);
-			info = data.Name + ST.粘贴 + ST.成功;
-			PastIngData = task;
-			if (PastIngData.WaitBuildCount > 0)
+			FactoryTask task = new FactoryTask(data);//新建粘贴任务
+			//检测是否够物品										
+			if (task.CheckCanPaste(player))
 			{
-				isShowItem = true;
-				noItem = PastIngData.GetWaitNeedItem;
-				noItemCount = PastIngData.GetWaitItemDCount;
-				haveItem = string.Empty;
-				haveItemCount = 0;
+				task.PasteDate(player, area, rotationType);//进行粘贴任务
+				info = data.Name + ST.粘贴 + ST.成功;
+				PastIngData = task;
 			}
+            else
+            {
+				//提示物品不足
+				info = data.Name + ST.物品 + ST.o + ST.不足;
+            }
 		}
 	}
+
+
 
 
 
@@ -731,10 +666,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				if (PastIngData.Working)
 				{
 					PastIngData.Building(prebuildId, __result);
-					if (PastIngData.preInserterMap.ContainsKey(prebuildId))
-					{
-						PastIngData.SetInserter(prebuildId, __result);
-					}
 				}
 				else
 				{

@@ -20,7 +20,35 @@ public class ST
             }
         }
     }
+    public static string 撤销任务
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "撤销任务";
+            }
+            else
+            {
+                return "Cancel Task";
+            }
+        }
+    }
 
+    public static string 物品
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "物品";
+            }
+            else
+            {
+                return "Items";
+            }
+        }
+    }
     public static string 加满
     {
         get
@@ -430,7 +458,20 @@ public class ST
             }
         }
     }
-
+    public static string 不足
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "不足";
+            }
+            else
+            {
+                return "not enough";
+            }
+        }
+    }
     public static string 正在复制
     {
         get

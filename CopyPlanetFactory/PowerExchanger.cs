@@ -43,66 +43,6 @@ public class PowerExchanger : MyPreBuildData
         }
 
     }
-    public override bool ConnBelt(PlanetFactory factory, Dictionary<int, int> BeltEIdMap)
-    {
-        Common.ReadObjectConn(c0, out bool isOut0, out int Belt0, out int slot0);
-        Common.ReadObjectConn(c1, out bool isOut1, out int Belt1, out int slot1);
-        Common.ReadObjectConn(c2, out bool isOut2, out int Belt2, out int slot2);
-        Common.ReadObjectConn(c3, out bool isOut3, out int Belt3, out int slot3);
-        if ((Belt0 == 0 || BeltEIdMap.ContainsKey(Belt0)) &&
-            (Belt1 == 0 || BeltEIdMap.ContainsKey(Belt1)) &&
-            (Belt2 == 0 || BeltEIdMap.ContainsKey(Belt2)) &&
-            (Belt3 == 0 || BeltEIdMap.ContainsKey(Belt3)))
-        {
-            int exId = factory.entityPool[newEId].powerExcId;
-            if (Belt0 > 0)
-            {
-                int beltEid = BeltEIdMap[Belt0];
-                int beltId = factory.entityPool[beltEid].beltId;
-                factory.WriteObjectConn(newEId, 0, isOut0, beltEid, isOut0 ? 1 : 0);
-                factory.powerSystem.SetExchangerBelt(exId, beltId, 0, isOut0);
-            }
-            else
-            {
-                factory.powerSystem.SetExchangerBelt(exId, 0, 0, false);
-            }
-            if (Belt1 > 0)
-            {
-                int beltEid = BeltEIdMap[Belt1];
-                int beltId = factory.entityPool[beltEid].beltId;
-                factory.WriteObjectConn(newEId, 1, isOut1, beltEid, isOut1 ? 1 : 0);
-                factory.powerSystem.SetExchangerBelt(exId, beltId, 1, isOut1);
-            }
-            else
-            {
-                factory.powerSystem.SetExchangerBelt(exId, 0,1, false);
-            }
-            if (Belt2 > 0)
-            {
-                int beltEid = BeltEIdMap[Belt2];
-                int beltId = factory.entityPool[beltEid].beltId;
-                factory.WriteObjectConn(newEId, 2, isOut2, beltEid, isOut2 ? 1 : 0);
-                factory.powerSystem.SetExchangerBelt(exId, beltId, 2, isOut2);
-            }
-            else
-            {
-                factory.powerSystem.SetExchangerBelt(exId, 0, 2, false);
-            }
-            if (Belt3 > 0)
-            {
-                int beltEid = BeltEIdMap[Belt3];
-                int beltId = factory.entityPool[beltEid].beltId;
-                factory.WriteObjectConn(newEId, 3, isOut3, beltEid, isOut3 ? 1 : 0);
-                factory.powerSystem.SetExchangerBelt(exId, beltId, 3, isOut3);
-            }
-            else
-            {
-                factory.powerSystem.SetExchangerBelt(exId, 0, 3, false);
-            }
-            return true;
-        }
-        return false;
-    }
 
     public override void SetData(PlanetFactory factory, int eId)
     {
