@@ -6,6 +6,7 @@ using UnityEngine;
 
 public static class Common
 {
+
 	/// <summary>
 	/// 获取空的连接口
 	/// </summary>

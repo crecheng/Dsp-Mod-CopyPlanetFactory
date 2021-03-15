@@ -58,7 +58,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		rectImg = new RectImg();
 	}
 
-	static int tryConnTimes = 0;
 	void Update()
 	{
 		frame++;
@@ -179,7 +178,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		FData.ClearData();
 		SelectData = null;
 		noItem = string.Empty;
-		tryConnTimes = 0;
 		AreaFalse();
 
 	}
