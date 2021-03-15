@@ -35,6 +35,8 @@ public class Station:MyPreBuildData
 		{
 			storage[i] = sc.storage[i];
 			storage[i].count = 0;
+			storage[i].localOrder = 0;
+			storage[i].remoteOrder = 0;
 		}
 	}
 
@@ -92,9 +94,9 @@ public class Station:MyPreBuildData
 					storage[i].itemId = int.Parse(s[index++]);
 					storage[i].max = int.Parse(s[index++]);
 					storage[i].localLogic = (ELogisticStorage)int.Parse(s[index++]);
-					storage[i].localOrder = int.Parse(s[index++]);
+					index++;
 					storage[i].remoteLogic = (ELogisticStorage)int.Parse(s[index++]);
-					storage[i].remoteOrder = int.Parse(s[index++]);
+					index++;
 					index++;
 				}
 			}
@@ -155,6 +157,35 @@ public class Station:MyPreBuildData
 		}
 		return !isMissing;
     }
+
+	public override bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
+	{
+		bool isMissing = false;
+		for (int i = 0; i < slots.Length; i++)
+		{
+			int oldBeltId = slots[i].beltId;
+			if (oldBeltId > 0 && preIdMap.ContainsKey(oldBeltId))
+			{
+
+				var other = preIdMap[oldBeltId];
+				if (slots[i].dir == IODir.Input)
+				{
+					factory.WriteObjectConn(preId, i, false,other.preId, 0);
+				}
+				else if (slots[i].dir == IODir.Output)
+				{
+					factory.WriteObjectConn(preId, i, true, other.preId, 1);
+				}
+			}
+			else
+			{
+				isMissing = true;
+			}
+		}
+		return !isMissing;
+	}
+		
+
 
     public override void SetData(PlanetFactory factory, int eId)
     {

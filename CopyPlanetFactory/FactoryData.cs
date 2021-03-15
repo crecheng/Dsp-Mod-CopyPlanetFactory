@@ -765,7 +765,7 @@ public class FactoryData
 			}
 			foreach (var d in ItemNeed)
 			{
-				if (p.package.GetItemCount(d.Key) >= d.Value)
+				if (Common.FindItem(d.Key,p) >= d.Value)
 				{
 					count1++;
 					var item = LDB.items.Select(d.Key);

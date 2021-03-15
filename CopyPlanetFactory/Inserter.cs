@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using BepInEx;
@@ -61,6 +62,24 @@ public class Inserter : MyPreBuildData
         s += $",{pd.pos2.x},{pd.pos2.y},{pd.pos2.z},{pd.rot2.x},{pd.rot2.y},{pd.rot2.z},{pd.rot2.w},{pd.filterId}";
         s += $",{inserter.pickTarget},{inserter.insertTarget},{inserter.stt},{inserter.delay},{outConn},{inConn},{oldEId}";
         return s;
+    }
+
+    public override bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
+    {
+		Common.ReadObjectConn(outConn, out bool isOut1, out int Belt1, out int slot);
+		Common.ReadObjectConn(inConn, out bool isOut2, out int Belt2, out int slot2);
+        if (Belt1 == 0 || preIdMap.ContainsKey(Belt1))
+        {
+            if (Belt2 == 0 || preIdMap.ContainsKey(Belt2))
+            {
+                if (Belt1 > 0)
+                    factory.WriteObjectConn(preId, 0, isOut1, preIdMap[Belt1].preId, slot);
+                if (Belt2 > 0)
+                    factory.WriteObjectConn(preId, 1, isOut2, preIdMap[Belt2].preId, slot2);
+                return true;
+            }
+        }
+        return false;
     }
 
     public override MyPreBuildData GetCopy()

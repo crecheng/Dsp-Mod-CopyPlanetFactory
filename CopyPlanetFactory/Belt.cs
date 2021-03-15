@@ -48,6 +48,28 @@ public class Belt : MyPreBuildData
 		}
 	}
 
+	public bool HaveBeletIn()
+    {
+		if (beltIn1 != 0|| beltIn2 != 0||beltIn3!=0)
+			return true;
+		return false;
+    }
+
+	public bool HaveOtherBelt(out int b1,out int b2)
+    {
+		int count = 0;
+		b1 = 0;
+		b2 = 0;
+		if (beltIn2 != 0)
+			count++;
+		b1 = beltIn2;
+		if (beltIn3 != 0)
+			count++;
+		b2 = beltIn3;
+		return count > 0;
+		
+    }
+
 	public override string GetData()
 	{
 		string s = $"{ pd.protoId},{pd.modelIndex},{pd.pos.x},{pd.pos.y},{pd.pos.z},{pd.rot.x},{pd.rot.y},{pd.rot.z},{pd.rot.w},{oldEId}";
@@ -96,8 +118,24 @@ public class Belt : MyPreBuildData
 		return false;
 	}
 
-
-	public override MyPreBuildData GetCopy()
+	public override bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
+	{
+		if (beltOut == 0 || preIdMap.ContainsKey(beltOut))
+		{
+			if (beltOut>0&& preIdMap.ContainsKey(beltOut))
+			{
+				var other = preIdMap[beltOut];
+				if (other.isBelt)
+				{
+					int otherSlot = Common.FindEmtryPreBeltConn(factory, -other.preId, 1);
+					if (otherSlot > 0)
+						factory.WriteObjectConn(preId, 0, true, other.preId, otherSlot);
+				}
+			}
+		}
+		return false;
+	}
+    public override MyPreBuildData GetCopy()
 	{
 		return new Belt(pd, belt, beltOut, beltIn1, beltIn2, beltIn3)
 		{

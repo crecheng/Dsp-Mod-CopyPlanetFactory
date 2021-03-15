@@ -25,8 +25,28 @@ public static class Common
 			}
 			catch (Exception e)
 			{
-				Debug.LogError("GetEmptyConnError");
-				Debug.LogError(e.Message);
+				Debug.LogError("GetEmptyConnError:"+eid);
+				Debug.LogError(e.Message+"\n"+e.StackTrace);
+			}
+		}
+		return -1;
+	}
+
+	public static int FindEmtryPreBeltConn(PlanetFactory factory, int pid, int start)
+    {
+		for (; start < 4; start++)
+		{
+			try
+			{
+				if (factory.prebuildConnPool[pid*16+start] == 0)
+				{
+					return start;
+				}
+			}
+			catch (Exception e)
+			{
+				Debug.LogError("GFindEmtryPreBeltConnError:" + pid);
+				Debug.LogError(e.Message + "\n" + e.StackTrace);
 			}
 		}
 		return -1;
@@ -58,6 +78,54 @@ public static class Common
 			otherObjId = -otherObjId;
 		}
 
+	}
+
+	public static int FindItem(int ItemId, PlanetFactory factory, Player player)
+	{
+		if (player.package.GetItemCount(ItemId) > 0)
+			return 0;
+		for (int i = 1; i < factory.factoryStorage.storageCursor; i++)
+		{
+			var storage = factory.factoryStorage.storagePool[i];
+			if (storage != null)
+				if (storage.GetItemCount(ItemId) > 0)
+					return i;
+		}
+
+		return -1;
+	}
+
+	public static int FindItem(int ItemId, Player player)
+	{
+		int count = player.package.GetItemCount(ItemId);
+        if (player.factory != null)
+        {
+			var factory = player.factory;
+			for (int i = 1; i < factory.factoryStorage.storageCursor; i++)
+			{
+				var storage = factory.factoryStorage.storagePool[i];
+				if (storage != null)
+					count += storage.GetItemCount(ItemId);
+			}
+			return count;
+		}
+        else
+			return count;
+
+	}
+
+	public static void TakeItem(int ItemId, PlanetFactory factory, Player player, int id)
+	{
+		if (id == 0)
+		{
+			player.package.TakeItem(ItemId, 1);
+		}
+		else if (id > 0)
+		{
+			var storage = factory.factoryStorage.storagePool[id];
+			if (storage != null)
+				storage.TakeItem(ItemId, 1);
+		}
 	}
 }
 

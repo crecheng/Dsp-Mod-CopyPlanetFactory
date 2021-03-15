@@ -129,6 +129,18 @@ public class MyPreBuildData
     }
 
 	/// <summary>
+	/// 预建筑连接传送带行为
+	/// </summary>
+	/// <param name="factory">工厂实例</param>
+	/// <param name="BeltEIdMap">传送带id映射</param>
+	/// <returns>是否完成连接</returns>
+	public virtual bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
+	{
+		return true;
+	}
+
+
+	/// <summary>
 	/// 设置数据
 	/// </summary>
 	/// <param name="factory">工厂实例</param>

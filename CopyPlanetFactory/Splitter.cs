@@ -14,7 +14,7 @@ public class Splitter : MyPreBuildData
     int c2;
     int c3;
 
-    public Splitter(PrebuildData prebuild ,int c0,int c1,int c2,int c3)
+    public Splitter(PrebuildData prebuild, int c0, int c1, int c2, int c3)
     {
         pd = prebuild;
         isSplitter = true;
@@ -83,19 +83,19 @@ public class Splitter : MyPreBuildData
             {
                 int beltEid = BeltEIdMap[Belt0];
                 int beltId = factory.entityPool[beltEid].beltId;
-                factory.WriteObjectConn(newEId,0, isOut0,beltEid, isOut0 ? 1 : 0);
+                factory.WriteObjectConn(newEId, 0, isOut0, beltEid, isOut0 ? 1 : 0);
                 factory.cargoTraffic.ConnectToSplitter(spId, beltId, 0, !isOut0);
             }
             else
             {
-                factory.cargoTraffic.ConnectToSplitter(spId,0, 0, false);
+                factory.cargoTraffic.ConnectToSplitter(spId, 0, 0, false);
             }
             if (Belt1 > 0)
             {
                 int beltEid = BeltEIdMap[Belt1];
                 int beltId = factory.entityPool[beltEid].beltId;
                 factory.WriteObjectConn(newEId, 1, isOut1, beltEid, isOut1 ? 1 : 0);
-                factory.cargoTraffic.ConnectToSplitter(spId, beltId,1, !isOut1);
+                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 1, !isOut1);
             }
             else
             {
@@ -117,7 +117,7 @@ public class Splitter : MyPreBuildData
                 int beltEid = BeltEIdMap[Belt3];
                 int beltId = factory.entityPool[beltEid].beltId;
                 factory.WriteObjectConn(newEId, 3, isOut3, beltEid, isOut3 ? 1 : 0);
-                factory.cargoTraffic.ConnectToSplitter(spId, beltId,3, !isOut3);
+                factory.cargoTraffic.ConnectToSplitter(spId, beltId, 3, !isOut3);
             }
             else
             {
@@ -127,5 +127,32 @@ public class Splitter : MyPreBuildData
         }
         return false;
     }
+
+    public override bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
+    {
+        Common.ReadObjectConn(c0, out bool isOut0, out int Belt0, out int slot0);
+        Common.ReadObjectConn(c1, out bool isOut1, out int Belt1, out int slot1);
+        Common.ReadObjectConn(c2, out bool isOut2, out int Belt2, out int slot2);
+        Common.ReadObjectConn(c3, out bool isOut3, out int Belt3, out int slot3);
+        if ((Belt0 == 0 || preIdMap.ContainsKey(Belt0)) &&
+            (Belt1 == 0 || preIdMap.ContainsKey(Belt1)) &&
+            (Belt2 == 0 || preIdMap.ContainsKey(Belt2)) &&
+            (Belt3 == 0 || preIdMap.ContainsKey(Belt3)))
+        {
+            if (Belt0 > 0)
+                factory.WriteObjectConn(preId, 0, isOut0, preIdMap[Belt0].preId, isOut0 ? 1 : 0);
+            if (Belt1 > 0)
+                factory.WriteObjectConn(preId, 1, isOut1, preIdMap[Belt1].preId, isOut1 ? 1 : 0);
+            if (Belt2 > 0)
+                factory.WriteObjectConn(preId, 2, isOut2, preIdMap[Belt2].preId, isOut2 ? 1 : 0);
+            if (Belt3 > 0)
+                factory.WriteObjectConn(preId, 3, isOut3, preIdMap[Belt3].preId, isOut3 ? 1 : 0);
+            return true;
+        }
+        return false;
+    }
+
 }
+
+
 

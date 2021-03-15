@@ -12,8 +12,7 @@ using UnityEngine.UI;
 [BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory",CopyPlanetFactory.Version )]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
-	
-	public const string Version = "2.1.3";
+	public const string Version = "2.1.6";
 	public const bool isDebug = false;
 	public static bool isLoad = false;
 	static MyUI ui;
@@ -41,6 +40,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	private static FactoryData SelectData = null;
 	private static string haveItem = string.Empty;
 	private static string noItem = string.Empty;
+	private static string nameInput = string.Empty;
 	void Start()
 	{
 		Harmony.CreateAndPatchAll(typeof(CopyPlanetFactory), null);
@@ -70,9 +70,9 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		}
         if (ui != null && ui.isLoad)
 		{
-			FData.Data.Name=ui.SaveName.text;
-			FData.Data.Name.Replace("\\", "").Replace("/", "").Replace("?", "").Replace("|", "").Replace("<", "").Replace(">", "").Replace(":", "").Replace("*", "").Replace("\"", "");
-			ui.SaveName.text = FData.Data.Name;
+			nameInput=ui.SaveName.text;
+			nameInput.Replace("\\", "").Replace("/", "").Replace("?", "").Replace("|", "").Replace("<", "").Replace(">", "").Replace(":", "").Replace("*", "").Replace("\"", "");
+			ui.SaveName.text = nameInput;
 			info = "";
 			if (PastIngData != null)
 			{
@@ -217,7 +217,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
             if (CheckData())
             {
 				var player = GameMain.mainPlayer;
-				DataList[index].CheckItem(player,out haveItem,out haveItemCount,out noItem,out noItemCount);
+				DataList[index].CheckItem(player, out haveItem,out haveItemCount,out noItem,out noItemCount);
 			}
             else
             {
@@ -235,6 +235,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	{
 		if (FData.Data.Count > 0 && FData.Data.Name.Length > 0)
 		{
+			FData.Data.Name = nameInput;
 			FData.Data.Export();
 			DataList.Add(FData.Data);
 			info1 = "保存在BepInEx\\config\\PlanetFactoryData";

@@ -82,6 +82,24 @@ public class Gamm : MyPreBuildData
         return false; 
     }
 
+    public override bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
+    {
+        Common.ReadObjectConn(conn0, out bool isOut1, out int Belt1, out int slot);
+        Common.ReadObjectConn(conn1, out bool isOut2, out int Belt2, out int slot2);
+        if (Belt1 == 0 || preIdMap.ContainsKey(Belt1))
+        {
+            if (Belt2 == 0 || preIdMap.ContainsKey(Belt2))
+            {
+                if (Belt1 > 0)
+                    factory.WriteObjectConn(preId, 0, isOut1, preIdMap[Belt1].preId, isOut1 ? 1 : 0);
+                if (Belt2 > 0)
+                    factory.WriteObjectConn(preId, 1, isOut2, preIdMap[Belt2].preId, isOut2 ? 1 : 0);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public override string GetData()
     {
         string s = $"{ pd.protoId},{pd.modelIndex},{pd.pos.x},{pd.pos.y},{pd.pos.z},{pd.rot.x},{pd.rot.y},{pd.rot.z},{pd.rot.w},{oldEId}";

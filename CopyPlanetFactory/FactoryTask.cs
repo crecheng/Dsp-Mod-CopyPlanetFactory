@@ -50,6 +50,10 @@ public class FactoryTask
 	/// </summary>
 	public Dictionary<int, MyPreBuildData> preIdMap;
 	/// <summary>
+	/// 预建筑数据
+	/// </summary>
+	public Dictionary<int, MyPreBuildData> preConnMap;
+	/// <summary>
 	/// 建筑完成的传送带数据，等待连接
 	/// </summary>
 	public List<Belt> BuildBeltData;
@@ -81,6 +85,7 @@ public class FactoryTask
 	private string itemNeedString;
 	public bool error;
 	public string errorMsg;
+	public int InserterConnt;
 	public ERotationType RotationType { get; private set; }
 	private bool[] area;
 	public int WaitBuildCount
@@ -173,12 +178,14 @@ public class FactoryTask
 		belts = new BeltQueue();
 		WaitNeedItem = new Dictionary<int, int>();
 		WaitItemBuild = new List<MyPreBuildData>();
+		preConnMap = new Dictionary<int, MyPreBuildData>();
 		error = false;
 		BeltCount = 0;
 		RotationType = ERotationType.Null;
 		playerHaveBeltItem = true;
 		playerHaveInserterItem = true;
 		errorMsg = string.Empty;
+		InserterConnt = 0;
 	}
 
 	public void ClearData()
@@ -203,6 +210,7 @@ public class FactoryTask
 		belts.Clear();
 		WaitNeedItem.Clear();
 		WaitItemBuild.Clear();
+		preConnMap.Clear();
 		GetWaitNeedItem = string.Empty;
 		BeltCount = 0;
 		error = false;
@@ -210,6 +218,7 @@ public class FactoryTask
 		RotationType = ERotationType.Null;
 		playerHaveBeltItem = true;
 		playerHaveInserterItem = true;
+		InserterConnt = 0;
 	}
 
 	/// <summary>
@@ -255,41 +264,50 @@ public class FactoryTask
 		{
 			if (GameMain.mainPlayer.factory == planetFactory)
 			{
-				if (WaitItemBuild.Count > 0||belts.Count>0||PreInserterData.Count>0)
+				if (WaitItemBuild.Count > 0 || belts.Count > 0 || PreInserterData.Count > 0)
 				{
-					var player = GameMain.mainPlayer;
-					playerHaveBeltItem = true;
-					playerHaveInserterItem = true;
-					List<MyPreBuildData> temp = new List<MyPreBuildData>();
-					temp.AddRange(WaitItemBuild);
-					
-					WaitItemBuild.Clear();
-					WaitNeedItem.Clear();
-					//Debug.Log(WaitItemBuild.Count);
-					foreach (var d in temp)
+					try
 					{
-						var dd = d.GetCopy();
+						var player = GameMain.mainPlayer;
+						playerHaveBeltItem = true;
+						playerHaveInserterItem = true;
+						List<MyPreBuildData> temp = new List<MyPreBuildData>();
+						temp.AddRange(WaitItemBuild);
 
-						AddPrebuildData(player, dd, out int pid);
-						if (pid > 0)
+						WaitItemBuild.Clear();
+						WaitNeedItem.Clear();
+						//Debug.Log(WaitItemBuild.Count);
+						foreach (var d in temp)
 						{
-							dd.preId = pid;
-							preIdMap.Add(pid, dd);
-						}
-					}
+							var dd = d.GetCopy();
 
-                    if (preIdMap.Count < 700&&belts.Count>0)
-                    {
-						BeltCount = 0;
-						foreach(var d in preIdMap)
-                        {
-							if (d.Value.isBelt)
-								BeltCount++;
+							AddPrebuildData(player, dd, out int pid);
+							if (pid > 0)
+							{
+								dd.preId = -pid;
+								preIdMap.Add(pid, dd);
+							}
 						}
-                    }
-					BeltQueueDequeue();
-					TryBuildInserter();
-					SetWaitItemString();
+
+						if (preIdMap.Count < 700 && belts.Count > 0)
+						{
+							BeltCount = 0;
+							foreach (var d in preIdMap)
+							{
+								if (d.Value.isBelt)
+									BeltCount++;
+							}
+						}
+						BeltQueueDequeue();
+						TryBuildInserter();
+						SetWaitItemString();
+					}
+					catch (Exception ex)
+					{
+
+						error = true;
+						errorMsg = "error!!!\n" + ex.Message + "\n" + ex.StackTrace;
+					}
 				}
 			}
 		}
@@ -377,21 +395,22 @@ public class FactoryTask
 	/// </summary>
 	public void TryBeltConn()
 	{
-		List<Belt> tmp = new List<Belt>();
-		foreach (var d in BuildBeltData)
-		{
-			if (d.ConnBelt(planetFactory, BeltEIdMap))
-				tmp.Add(d);
-		}
-		foreach (var d in tmp)
-		{
-			BuildBeltData.Remove(d);
-		}
-	}
+		return;
+        List<Belt> tmp = new List<Belt>();
+        foreach (var d in BuildBeltData)
+        {
+            if (d.ConnBelt(planetFactory, BeltEIdMap))
+                tmp.Add(d);
+        }
+        foreach (var d in tmp)
+        {
+            BuildBeltData.Remove(d);
+        }
+    }
 
 	public void TryConn()
 	{
-		
+		return;
 		List<MyPreBuildData> tmp = new List<MyPreBuildData>();
 		foreach (var d in NeedConnData)
 		{
@@ -415,7 +434,7 @@ public class FactoryTask
 		//如果加入成功
 		if (pid > 0)
 		{
-			dd.preId = pid;
+			dd.preId = -pid;
 			//加入预建造数据
 			preIdMap.Add(pid, dd);
 		}
@@ -471,35 +490,44 @@ public class FactoryTask
 						Debug.LogError(e.Message);
 					}
 				}
-				foreach (var d in Data.AllData)
-				{
+                foreach (var d in Data.AllData)
+                {
 					if (IsInArea(d.Pos, area))
 					{
-						if (d.isInserter)
-						{
-							var dd = (Inserter)d.GetCopy();
-							PreInserterData.Add(dd);
-						}
-						else if (d.isBelt)
-						{
-							Belt dd = (Belt)d.GetCopy();
-							belts.Enqueue(dd);
-						}
-						else
-						{
-							AddPasteData(player1, d);
-						}
+						var copy = d.GetCopy();
+						AddPasteData(player1, d);
 					}
-
 				}
+				ConnPreBuild();
+				//foreach (var d in Data.AllData)
+				//{
+				//	if (IsInArea(d.Pos, area))
+				//	{
+				//		if (d.isInserter)
+				//		{
+				//			var dd = (Inserter)d.GetCopy();
+				//			PreInserterData.Add(dd);
+				//		}
+				//		else if (d.isBelt)
+				//		{
+				//			Belt dd = (Belt)d.GetCopy();
+				//			belts.Add(dd);
+				//		}
+				//		else
+				//		{
+				//			AddPasteData(player1, d);
+				//		}
+				//	}
 
-				if (preIdMap.Count == 0)
-				{
-					TryBuildInserter();
-				}
-				belts.Sort();
-				BeltQueueDequeue();
-				SetWaitItemString();
+				//}
+
+				//if (preIdMap.Count == 0)
+				//{
+				//	TryBuildInserter();
+				//}
+				//belts.Sort();
+				//BeltQueueDequeue();
+				//SetWaitItemString();
 			}
 			haveAddPasteData = false;
         }
@@ -516,33 +544,89 @@ public class FactoryTask
 	/// </summary>
 	public void BeltQueueDequeue()
     {
-		if (belts.Count > 0&&playerHaveBeltItem)
+		if (belts.BeltStack.Count > 0&&playerHaveBeltItem)
 		{
-			int i = 0;
-			do
-			{
-				i++;
-				if (belts.Count > 0 && playerHaveBeltItem)
+			var temp = new List<Stack<Belt>>();
+			var bs = belts.BeltStack;
+			BeltCount=0;
+			foreach (var st in bs)
+            {
+				int i = 0;
+				BeltCount++;
+				int lastPid = 0;
+				do
 				{
-					var dd = belts.Peek();
-					if (AddPrebuildData(player, dd, out int pid, true)>0)
+					i++;
+					if (st.Count > 0 && playerHaveBeltItem)
 					{
-						if (pid > 0)
+						var dd = st.Peek();
+						if (AddPrebuildData(player, dd, out int pid, true) > 0)
 						{
-							BeltCount++;
-							haveBelt = true;
-							dd.preId = pid;
-							preIdMap.Add(pid, dd);
-							BeltCount++;
+							if (pid > 0)
+							{
+								haveBelt = true;
+								dd.preId = -pid;
+								preIdMap.Add(pid, dd);
+								dd.isNeedConn = false;
+                                if (lastPid != 0)
+                                {
+									planetFactory.WriteObjectConn(-lastPid, 0, true, -pid, 1);
+                                }
+                                else
+                                {
+									dd.isNeedConn = true;
+                                }
+								lastPid = pid;
+							}
+							st.Pop();
+                            if (st.Count == 0)
+                            {
+								dd.isNeedConn = true;
+                            }
 						}
-						belts.Dequeue();
 					}
-				}
-				if (belts.Count <= 0)
-					break;
-				if (i > 10000)
-					break;
-			} while (BeltCount < 1000);
+                    else
+                    {
+						break;
+                    }
+					if (st.Count <= 0)
+						break;
+					if (i > 10000)
+						break;
+				} while (BeltCount < 1000);
+				if (st.Count == 0)
+					temp.Add(st);
+			}
+
+			foreach(var d in temp)
+            {
+				belts.BeltStack.Remove(d);
+            }
+			//int i = 0;
+			//do
+			//{
+			//	i++;
+			//	if (belts.Count > 0 && playerHaveBeltItem)
+			//	{
+			//		var dd = belts.Peek();
+			//		if (AddPrebuildData(player, dd, out int pid, true)>0)
+			//		{
+			//			if (pid > 0)
+			//			{
+			//				BeltCount++;
+			//				haveBelt = true;
+			//				dd.preId = pid;
+			//				preIdMap.Add(pid, dd);
+			//				BeltCount++;
+			//			}
+			//			belts.Dequeue();
+			//		}
+			//	}
+			//	if (belts.Count <= 0)
+			//		break;
+			//	if (i > 10000)
+			//		break;
+			//} while (BeltCount < 1000);
 		}
 	}
 
@@ -568,8 +652,8 @@ public class FactoryTask
 
 				if (flag)
 				{
-					BeltCount--;
-					BuildBeltData.Add((Belt)d);
+					if(d.isNeedConn)
+						BuildBeltData.Add((Belt)d);
 					BeltEIdMap.Add(d.oldEId, eid);
 					TryBeltConn();
 				}
@@ -590,12 +674,7 @@ public class FactoryTask
 				preIdMap.Remove(preId);
 				if (flag)
 				{
-					BeltQueueDequeue();
 					TryConn();
-				}
-				if (preIdMap.Count < 800)
-				{
-					BeltQueueDequeue();
 				}
 
 				TryBuildInserter();
@@ -613,6 +692,21 @@ public class FactoryTask
 			errorMsg = e.Message + "\n" + e.StackTrace;
 		}
 	}
+
+	public void ConnPreBuild()
+    {
+		List<int> temp = new List<int>();
+        foreach (var d in preConnMap)
+        {
+			d.Value.ConnPreBelt(planetFactory, preConnMap);
+			if (!d.Value.isNeedConn)
+				temp.Add(d.Key);
+        }
+        foreach (var d in temp)
+        {
+			preConnMap.Remove(d);
+        }
+    }
 
 	/// <summary>
 	/// 尝试建造爪子数据
@@ -652,8 +746,6 @@ public class FactoryTask
 		{
 			PreInserterData.Remove(re);
 		}
-
-
 	}
 
 	public void NewData()
@@ -805,7 +897,8 @@ public class FactoryTask
 	public int AddPrebuildData(Player player, MyPreBuildData d, out int pId, bool IgnoreOverlap = false)
 	{
 		pId = -1;
-		if (player.package.GetItemCount(d.ProtoId) > 0)
+		int id = Common.FindItem(d.ProtoId, planetFactory, player);
+		if ( id> -1)
 		{
 			d.SetNewRot(this);
 			if (!IgnoreOverlap)
@@ -817,8 +910,17 @@ public class FactoryTask
 					if (player.planetData.factory.entityPool[eid].protoId == d.ProtoId)
                     {
 						d.newEId = eid;
-						if(d.type!=EDataType.Inserter)
+
+						if (d.type == EDataType.Inserter)
+						{
+							InserterConnt++;
+							preConnMap.Add(-InserterConnt, d);
+						}
+						else
+						{
 							eIdMap.Add(d.oldEId, eid);
+							preConnMap.Add(d.oldEId, d);
+						}
                     }
 					return 2;
 				}
@@ -833,8 +935,17 @@ public class FactoryTask
 					if (player.planetData.factory.entityPool[eid].protoId == d.ProtoId)
 					{
 						d.newEId = eid;
-						if (d.type != EDataType.Inserter)
+
+						if (d.type == EDataType.Inserter)
+						{
+							InserterConnt++;
+							preConnMap.Add(-InserterConnt, d);
+						}
+						else
+						{
 							eIdMap.Add(d.oldEId, eid);
+							preConnMap.Add(d.oldEId, d);
+						}
 					}
 					if (player.planetData.factory.entityPool[eid].beltId > 0)
 					{
@@ -844,8 +955,21 @@ public class FactoryTask
 				}
 			}
 			pId = player.factory.AddPrebuildDataWithComponents(d.pd);
-			int e = player.planetData.factory.prebuildPool[pId].upEntity;
-			player.package.TakeItem(d.ProtoId, 1);
+            if (pId > 0)
+            {
+				d.preId = -pId;
+				if (d.type == EDataType.Inserter)
+				{
+					InserterConnt++;
+					preConnMap.Add(-InserterConnt, d);
+				}
+				else
+				{
+					preConnMap.Add(d.oldEId, d);
+				}
+			}
+			
+			Common.TakeItem(d.ProtoId, planetFactory, player, id);
 			return 1;
         }
         else
@@ -869,6 +993,8 @@ public class FactoryTask
 		}
 
 	}
+
+
 
 	/// <summary>
 	/// 检测是否在游戏
