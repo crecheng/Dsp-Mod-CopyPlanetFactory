@@ -74,6 +74,8 @@ public class MyUI
 	/// 任务信息
 	/// </summary>
 	public Text TaskInfo;
+
+	public Text Info;
 	/// <summary>
 	/// 任务信息矩阵
 	/// </summary>
@@ -138,6 +140,8 @@ public class MyUI
 		});
 		ControlButton.SetActive(true);
 
+		Info = ControlPanel.transform.Find("Info").GetComponent<Text>();
+		Info.color = Color.white;
 		var filePanel = ControlPanel.transform.Find("FilesPanel").gameObject;
 		ButtonDataFile = new ButtonGroup[7];
 		for (int i = 1; i < 8; i++)

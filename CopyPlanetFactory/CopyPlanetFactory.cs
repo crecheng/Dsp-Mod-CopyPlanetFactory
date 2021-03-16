@@ -12,7 +12,7 @@ using UnityEngine.UI;
 [BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory",CopyPlanetFactory.Version )]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
-	public const string Version = "2.2.1";
+	public const string Version = "2.2.3";
 	public const bool isDebug = false;
 	public static bool isLoad = false;
 	static MyUI ui;
@@ -72,7 +72,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			nameInput=ui.SaveName.text;
 			nameInput.Replace("\\", "").Replace("/", "").Replace("?", "").Replace("|", "").Replace("<", "").Replace(">", "").Replace(":", "").Replace("*", "").Replace("\"", "");
 			ui.SaveName.text = nameInput;
-			info = "";
 			if (PastIngData != null)
 			{
 				if (PastIngData.error)
@@ -87,7 +86,8 @@ public class CopyPlanetFactory : BaseUnityPlugin
 					
 				}
 			}
-			ui.TaskInfo.text = info+(info.Length>0?"\n-------\n":"")+ info1;
+			ui.TaskInfo.text = info1;
+			ui.Info.text = info;
 		}
 		
 	}
@@ -157,7 +157,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				StartCoroutine(FData.Data.CheckBelt((float)(0.1 + 0.1 * i)));
 			}
 			SelectData = FData.Data;
-			info1 = ST.复制 + ST.成功 + ":" + SelectData.AllData.Count;
+			info = ST.复制 + ST.成功 + ":" + SelectData.AllData.Count;
 		}
 	}
 
@@ -206,12 +206,12 @@ public class CopyPlanetFactory : BaseUnityPlugin
 
 	void SaveData()
 	{
-		if (FData.Data.Count > 0 && FData.Data.Name.Length > 0)
+		if (FData.Data.Count > 0 && nameInput.Length > 0)
 		{
 			FData.Data.Name = nameInput;
 			FData.Data.Export();
 			DataList.Add(FData.Data);
-			info1 = "保存在BepInEx\\config\\PlanetFactoryData";
+			info = "保存在BepInEx\\config\\PlanetFactoryData";
 			FData.NewData();
 
 		}
@@ -228,7 +228,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			PastIngData = null;
 			noItem = string.Empty;
 			confirmStop = false;
-			info1 = "";
+			info = "";
 		}
 	}
 
@@ -288,16 +288,14 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		int c = DataList.Count - start;
 		if (c > 0)
 		{
-			int min = Math.Min(c, 7);
-			int i = 0;
-			for (; i < min; i++)
+			for (int i = 0; i < 7; i++)
 			{
 				ui.ButtonDataFile[i].SetActive(true);
-				ui.ButtonDataFile[i].text.text = GetData(i).Name;
-			}
-            for (; i < 7; i++)
-            {
-				ui.ButtonDataFile[i].SetActive(false);
+				var temp = GetData(i);
+				if (temp != null)
+					ui.ButtonDataFile[i].text.text = GetData(i).Name;
+				else
+					ui.ButtonDataFile[i].SetActive(false);
 			}
 		}
         else
