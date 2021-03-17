@@ -79,3 +79,5 @@ Divided by the equator, north and south, left and right
 2.2.0 更新连接逻辑，取消补充物品功能，但是会从当前星球的箱子里获取物品
 
 2.2.1 物品不足建无法粘贴，加入撤销功能
+
+2.2.4 修复bug

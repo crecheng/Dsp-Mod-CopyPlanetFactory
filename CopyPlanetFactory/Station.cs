@@ -161,6 +161,14 @@ public class Station:MyPreBuildData
 		{
 			sc.storage[i] =storage[i];
 		}
+		//获取接口的最小长度，防止越界
+		minLen = Math.Min(sc.slots.Length, slots.Length);
+        for (int i = 0; i < minLen; i++)
+        {
+			sc.slots[i].storageIdx = slots[i].storageIdx;
+			sc.slots[i].counter = slots[i].counter;
+			sc.slots[i].dir = slots[i].dir;
+        }
 		newEId = eId;
 	}
 

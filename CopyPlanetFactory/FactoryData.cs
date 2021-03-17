@@ -28,6 +28,7 @@ public class FactoryData
 	public PlanetFactoryImg Img;
 
 	public bool isInitItem;
+
 	public PlanetFactory factory;
 
 

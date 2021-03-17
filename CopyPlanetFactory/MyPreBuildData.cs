@@ -37,6 +37,7 @@ public class MyPreBuildData
 	public bool isSplitter;
 	public bool isNeedConn;
 	public bool isCancel;
+	public bool isAfterSet;
 	/// <summary>
 	/// 建筑类型，由子类赋值
 	/// </summary>
@@ -65,6 +66,7 @@ public class MyPreBuildData
 		isNeedConn = false;
 		isSplitter = false;
 		isCancel = false;
+		isAfterSet = false;
 		type = EDataType.Null;
 	}
 

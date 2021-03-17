@@ -12,7 +12,7 @@ using UnityEngine.UI;
 [BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory",CopyPlanetFactory.Version )]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
-	public const string Version = "2.2.3";
+	public const string Version = "2.2.4";
 	public const bool isDebug = false;
 	public static bool isLoad = false;
 	static MyUI ui;
@@ -87,7 +87,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				}
 			}
 			ui.TaskInfo.text = info1;
-			ui.Info.text = info;
+			ui.Info.text = info+"\n"+(PastIngData!=null?"\n当前任务："+PastIngData.Data.Name:"");
 		}
 		
 	}
@@ -142,6 +142,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			if (GameMain.mainPlayer != null&&PastIngData!=null)
 			{
 				PastIngData.CancelTask(GameMain.mainPlayer);
+				PastIngData.PasteClear();
 			}
 		});
 	}
@@ -158,6 +159,9 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			}
 			SelectData = FData.Data;
 			info = ST.复制 + ST.成功 + ":" + SelectData.AllData.Count;
+			string temps;
+			SelectData.CheckItem(null, out string ts1, out int i1, out temps, out int i2);
+			info1 += temps;
 		}
 	}
 
@@ -175,11 +179,12 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	}
 	void ClearData()
 	{
-		FData.ClearData();
+		FData.PasteClear();
+		FData.NewData();
 		SelectData = null;
+		PastIngData = null;
 		noItem = string.Empty;
 		AreaFalse();
-
 	}
 
 	FactoryData GetData(int i)
@@ -445,6 +450,9 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				SelectData = FData.Data;
 				FData.Data.GetImg(ImgX, ImgY);
 				info1 = ST.复制 + ST.成功 + ":" + SelectData.AllData.Count;
+				string temps;
+				SelectData.CheckItem(null, out string ts1, out int i1, out temps, out int i2);
+				info1 += temps;
 			}
 			if (GUI.Button(new Rect(610, h + 130, 120, 60), $"{ST.移除}{ST.o}{ST.选定}{ST.o}{ST.区域}{ST.o}{ST.建筑}"))
 			{
@@ -675,6 +683,11 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	[HarmonyPatch(typeof(GameData), "GameTick")]
 	static void getInfo(GameData __instance)
 	{
+        if (PastIngData != null)
+        {
+			if (!PastIngData.Working)
+				PastIngData = null;
+        }
 		//if (__instance != null && __instance.mainPlayer != null && __instance.mainPlayer.planetData != null)
 		//{
 		//	PlanetData planetData = __instance.mainPlayer.planetData;
@@ -699,7 +712,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 					var ed = player.factory.entityPool[ce.id];
 					var bd = player.factory.cargoTraffic.beltPool[inid];
 					var sid = ce.stationId;
-					var ejId = ce.splitterId;
+					var ejId = ce.powerExcId;
 					Buginfo = "eid:" + ce.id.ToString();
 					Buginfo += "\npos:" + ed.pos;
 					Buginfo += "\nrot:" + ed.rot;
@@ -751,21 +764,19 @@ public class CopyPlanetFactory : BaseUnityPlugin
                             }
                         }
                     }
-                    if (ce.splitterId > 0)
+                    if (ce.powerExcId > 0)
                     {
-						var cd = player.planetData.factory.cargoTraffic.splitterPool[ce.splitterId];
-						Buginfo += "\nA:"+cd.beltA;
-						Buginfo += "\nB:"+cd.beltB;
-						Buginfo += "\nC:"+cd.beltC;
-						Buginfo += "\nD:"+cd.beltD;
-						Buginfo += "\no0:"+cd.output0;
-						Buginfo += "\no1:"+cd.output1;
-						Buginfo += "\no2:"+cd.output2;
-						Buginfo += "\no3:"+cd.output3;
-						Buginfo += "\ni0:"+cd.input0;
-						Buginfo += "\ni1:"+cd.input1;
-						Buginfo += "\ni2:"+cd.input2;
-						Buginfo += "\ni3:"+cd.input3;
+						var cd = player.planetData.factory.powerSystem.excPool[ce.powerExcId];
+						Buginfo += "\nbelt0:" + cd.belt0;
+						Buginfo += "\nbelt1:" + cd.belt1;
+						Buginfo += "\nbelt2:" + cd.belt2;
+						Buginfo += "\nbelt3:" + cd.belt3;
+						Buginfo += "\ninputSlot:" + cd.inputSlot;
+						Buginfo += "\noutputSlot:" + cd.outputSlot;
+						Buginfo += "\nisOutput0:" + cd.isOutput0;
+						Buginfo += "\nisOutput1:" + cd.isOutput1;
+						Buginfo += "\nisOutput2:" + cd.isOutput2;
+						Buginfo += "\nisOutput3:" + cd.isOutput3;
 
 					}
                     //if (ejId > 0)

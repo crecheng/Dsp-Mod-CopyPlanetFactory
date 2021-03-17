@@ -17,6 +17,11 @@ public class FactoryTask
 	/// <summary>
 	/// </summary>
 	private List<Inserter> PreInserterData;
+
+	///等待设置的建筑数据
+	/// <summary>
+	/// </summary>
+	private List<MyPreBuildData> AfterSetData;
 	/// <summary>
 	/// 查找重叠数据-模糊
 	/// </summary>
@@ -65,7 +70,7 @@ public class FactoryTask
     {
         get
         {
-			return preIdMap.Count > 0;
+			return preIdMap.Count > 0||AfterSetData.Count>0;
         }
     }
 
@@ -126,6 +131,7 @@ public class FactoryTask
 		belts = new BeltQueue();
 		preConnMap = new Dictionary<int, MyPreBuildData>();
 		addBuildData = new List<MyPreBuildData>();
+		AfterSetData = new List<MyPreBuildData>();
 		error = false;
 		BeltCount = 0;
 		RotationType = ERotationType.Null;
@@ -153,6 +159,7 @@ public class FactoryTask
 		belts.Clear();
 		preConnMap.Clear();
 		addBuildData.Clear();
+		AfterSetData.Clear();
 		GetWaitNeedItem = string.Empty;
 		BeltCount = 0;
 		error = false;
@@ -204,7 +211,15 @@ public class FactoryTask
 		return x * 10000000000 + y * 100000 + z;
     }
 
-
+	//尝试设置一些建筑数据
+	public void TryAfterSet()
+    {
+        foreach (var d in AfterSetData)
+        {
+			d.SetData(planetFactory,d.newEId );
+        }
+		AfterSetData.Clear();
+    }
 
 	public void AddPasteData(Player player1, MyPreBuildData d)
 	{
@@ -308,6 +323,10 @@ public class FactoryTask
 				if (d.type != EDataType.Inserter)
 					eIdMap.Add(d.oldEId, eid);
 
+                if (d.isAfterSet)
+                {
+					AfterSetData.Add(d);
+                }
 				d.SetData(planetFactory, eid);
 
 				int ejectorId = planetFactory.entityPool[eid].ejectorId;
@@ -316,9 +335,12 @@ public class FactoryTask
 					planetFactory.factorySystem.ejectorPool[ejectorId].orbitId = 1;
 				}
 
+
 				preIdMap.Remove(preId);
 
 			}
+			if (preIdMap.Count == 0)
+				TryAfterSet();
 		}
 		catch (Exception e)
 		{
@@ -597,22 +619,35 @@ public class FactoryTask
 	/// <param name="player"></param>
 	public void CancelTask(Player player)
     {
+		//是否全部撤销了
+		bool isCancelAll = false;
         foreach (var d in addBuildData)
         {
 			//玩家背包是否满了
 			if (!d.isCancel)
 			{
+				//如果不是已经建成的建筑
 				if (d.newEId == 0)
 				{
+					//移除预建筑
 					Common.RemoveBuild(player, planetFactory, d.preId);
 					d.isCancel = true;
 				}
 				else if (d.newEId > 0)
 				{
+					//移除实体数据
 					Common.RemoveBuild(player, planetFactory, d.newEId);
 					d.isCancel = true;
 				}
 			}
+			else
+				isCancelAll = true;
+        }
+		//如果全部撤销了
+        if (!isCancelAll)
+        {
+			//清空数据
+			PasteClear();
         }
     }
 

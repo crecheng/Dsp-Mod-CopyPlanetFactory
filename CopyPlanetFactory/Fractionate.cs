@@ -51,6 +51,31 @@ public class Fractionate : MyPreBuildData
             newEId=newEId
         };
     }
+
+    public override void SetData(PlanetFactory factory, int eId)
+    {
+        int sId = factory.entityPool[eId].fractionateId;
+        //读取接口数据
+        factory.ReadObjectConn(eId, 0, out bool out0, out int belt0, out int slot0);
+        factory.ReadObjectConn(eId, 1, out bool out1, out int belt1, out int slot1);
+        factory.ReadObjectConn(eId, 2, out bool out2, out int belt2, out int slot2);
+        //对数据进行连接
+        if (belt0 > 0)
+        {
+            int beltId = factory.entityPool[belt0].beltId;
+            factory.factorySystem.SetFractionateBelt(sId, beltId, 0, out0);
+        }
+        if (belt1 > 0)
+        {
+            int beltId = factory.entityPool[belt1].beltId;
+            factory.factorySystem.SetFractionateBelt(sId, beltId, 1, out1);
+        }
+        if (belt2 > 0)
+        {
+            int beltId = factory.entityPool[belt2].beltId;
+            factory.factorySystem.SetFractionateBelt(sId, beltId, 2, out2);
+        }
+    }
     public override bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
     {
         Common.ReadObjectConn(c0, out bool isOut0, out int Belt0, out int slot0);
