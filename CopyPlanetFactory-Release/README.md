@@ -81,3 +81,5 @@ Divided by the equator, north and south, left and right
 2.2.1 物品不足建无法粘贴，加入撤销功能
 
 2.2.4 修复bug
+
+2.2.5 修复bug，蓝图加入描述

@@ -35,6 +35,20 @@ public class ST
         }
     }
 
+       public static string noItemTip
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "mod会自动使用当前星球箱子里的物品";
+            }
+            else
+            {
+                return "mod will use item form box in local planet";
+            }
+        }
+    }
     public static string 物品
     {
         get

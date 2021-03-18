@@ -12,8 +12,8 @@ using UnityEngine.UI;
 [BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory",CopyPlanetFactory.Version )]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
-	public const string Version = "2.2.4";
-	public const bool isDebug = false;
+	public const string Version = "2.2.5";
+	public const bool isDebug = true;
 	public static bool isLoad = false;
 	static MyUI ui;
 	public long frame = 0;
@@ -209,6 +209,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		return null;
     }
 
+
 	void SaveData()
 	{
 		if (FData.Data.Count > 0 && nameInput.Length > 0)
@@ -219,21 +220,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			info = "保存在BepInEx\\config\\PlanetFactoryData";
 			FData.NewData();
 
-		}
-	}
-
-	void StopData()
-    {
-		if (!confirmStop)
-		{
-			confirmStop = true;
-		}
-		else
-		{
-			PastIngData = null;
-			noItem = string.Empty;
-			confirmStop = false;
-			info = "";
 		}
 	}
 
@@ -300,7 +286,10 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				if (temp != null)
 					ui.ButtonDataFile[i].text.text = GetData(i).Name;
 				else
+				{
+					ui.ButtonDataFile[i].text.text = string.Empty;
 					ui.ButtonDataFile[i].SetActive(false);
+				}
 			}
 		}
         else
@@ -369,8 +358,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		}
 	}
 
-
-
 	static bool isShowImg = false;
 	static PlanetFactoryImg localImg = new PlanetFactoryImg();
 	static int rectx1=0;
@@ -381,6 +368,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	static int ImgHeight = 400;
 	static RectImg rectImg;
 	static bool isLookLocal = false;
+	static string dataTipString = string.Empty;
 	void mywindowfunction(int windowid)
 	{
 		int h = ImgHeight;
@@ -467,7 +455,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			int buttonH = 20;
 			if (GUI.Button(new Rect(10, h+30, buttonW, buttonH), ST.粘贴))
 			{
-
 				PasteData(SelectData, ERotationType.Null);
 			}
 			if (GUI.Button(new Rect(10, h + 50, buttonW, buttonH), ST.赤道 + "(Y)" + ST.镜像 + ST.粘贴))
@@ -558,6 +545,11 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			area[5] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[5], $"6:{ST.西},{ST.北},{ST.左}");
 			area[6] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[6], $"7:{ST.西},{ST.南},{ST.右}");
 			area[7] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[7], $"8:{ST.西},{ST.南},{ST.左}");
+			SelectData.tip= GUI.TextArea(new Rect(505, h + 10, 300, 150), SelectData.tip);
+			if(GUI.Button(new Rect(770, h + 165, 60, 25), ST.保存))
+            {
+				SelectData.Export();
+            }
 			//if(GUI.Button(new Rect(400, h + 20 + 20 * bc++, 100, 40), tempstring))
    //         {
 			//	tempstring= SelectData.CheckAllData().ToString();
@@ -615,8 +607,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			SelectData.FreshImg(); 
 	}
 
-	static string tempstring = "";
-
 	private void PasteData(FactoryData data, ERotationType rotationType = ERotationType.Null)
 	{
 		var player = GetPlayer();
@@ -633,7 +623,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
             else
             {
 				//提示物品不足
-				info = data.Name + ST.物品 + ST.o + ST.不足;
+				info = data.Name + ST.物品 + ST.o + ST.不足+"\n"+ST.noItemTip;
             }
 		}
 	}

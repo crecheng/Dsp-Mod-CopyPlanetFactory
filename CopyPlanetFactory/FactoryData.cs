@@ -31,6 +31,8 @@ public class FactoryData
 
 	public PlanetFactory factory;
 
+	public string tip = string.Empty;
+
 
 
 	/// <summary>
@@ -75,6 +77,7 @@ public class FactoryData
 		ItemNeed.Clear();
 		AllData.Clear();
 		CheckBeltData.Clear();
+		tip = string.Empty;
 	}
 
 	public string Name;
@@ -106,7 +109,8 @@ public class FactoryData
 		s[0] = dataVersion.ToString();
 		s[1] = Name;
 		s[2] = GetItemCountData(true);
-		int i = 3;
+		s[3] = tip;
+		int i = 4;
 		for(; i < 10; i++)
         {
 			s[i] = string.Empty;
@@ -151,6 +155,7 @@ public class FactoryData
                         {
 							Name = s[1];
 							AddItemCount(s[2]);
+							tip = s[3];
 							int i = 10;
                             for (; i < s.Length; i++)
                             {
