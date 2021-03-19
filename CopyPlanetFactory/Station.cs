@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -122,7 +123,30 @@ public class Station:MyPreBuildData
 		return s;
 	}
 
-	public override bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
+    public override void Export(BinaryWriter w)
+    {
+        base.Export(w);
+		w.Write(slots.Length);
+        for (int i = 0; i < slots.Length; i++)
+        {
+			var temp = slots[i];
+			w.Write((int)temp.dir);
+			w.Write(temp.beltId);
+			w.Write(temp.counter);
+			w.Write(temp.storageIdx);
+        }
+		w.Write(storage.Length);
+        for (int i = 0; i < storage.Length; i++)
+        {
+			var temp = storage[i];
+			w.Write(temp.itemId);
+			w.Write(temp.max);
+			w.Write((int)temp.localLogic);
+			w.Write((int)temp.remoteLogic);
+        }
+    }
+
+    public override bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
 	{
 		bool isMissing = false;
 		for (int i = 0; i < slots.Length; i++)

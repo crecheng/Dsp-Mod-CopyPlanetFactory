@@ -64,6 +64,19 @@ public class Inserter : MyPreBuildData
         return s;
     }
 
+    public override void Export(BinaryWriter w)
+    {
+        ExportBaesData(w);
+        WriterV3(w, pd.pos2);
+        WriterQuaternion(w, pd.rot2);
+        w.Write(inserter.pickTarget);
+        w.Write(inserter.insertTarget);
+        w.Write(inserter.stt);
+        w.Write(inserter.delay);
+        w.Write(outConn);
+        w.Write(inConn);
+    }
+
     public override bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
     {
 		Common.ReadObjectConn(outConn, out bool isOut1, out int Belt1, out int slot);

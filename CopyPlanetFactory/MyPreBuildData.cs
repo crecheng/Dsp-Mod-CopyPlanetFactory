@@ -112,6 +112,47 @@ public class MyPreBuildData
 		return "";
 	}
 
+	/// <summary>
+	/// 二进制导出基本数据
+	/// </summary>
+	/// <param name="w"></param>
+	public void ExportBaesData(BinaryWriter w)
+    {
+		w.Write(pd.protoId);
+		w.Write(pd.modelIndex);
+		WriterV3(w, pd.pos);
+		WriterQuaternion(w, pd.rot);
+		w.Write(oldEId);
+	}
+	public virtual void Export(BinaryWriter w)
+    {
+
+    }
+
+	/// <summary>
+	/// 二进制导出vector3
+	/// </summary>
+	/// <param name="w"></param>
+	/// <param name="vector3"></param>
+	public void WriterV3(BinaryWriter w,Vector3 vector3)
+    {
+		w.Write(vector3.x);
+		w.Write(vector3.y);
+		w.Write(vector3.z);
+    }
+
+	/// <summary>
+	/// 二进制导出Quaternion
+	/// </summary>
+	/// <param name="w"></param>
+	/// <param name="quaternion"></param>
+	public void WriterQuaternion(BinaryWriter w,Quaternion quaternion)
+    {
+		w.Write(quaternion.x);
+		w.Write(quaternion.y);
+		w.Write(quaternion.z);
+		w.Write(quaternion.w);
+    }
 
 	public virtual MyPreBuildData GetCopy()
     {

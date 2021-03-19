@@ -12,8 +12,8 @@ using UnityEngine.UI;
 [BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory",CopyPlanetFactory.Version )]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
-	public const string Version = "2.2.5";
-	public const bool isDebug = true;
+	public const string Version = "2.3.0";
+	public const bool isDebug = false;
 	public static bool isLoad = false;
 	static MyUI ui;
 	public long frame = 0;
@@ -77,12 +77,12 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				if (PastIngData.error)
 				{
 					isShowItem = true;
-					noItem = PastIngData.errorMsg;
 					ui.TaskInfo.color = Color.red;
 					info1 = "error!!!\n"+PastIngData.errorMsg;
 					ui.TaskInfo.text= PastIngData.errorMsg;
 					var tRect = ui.TaskInfo.GetComponent<RectTransform>();
 					tRect.sizeDelta = new Vector2(300f, 400f);
+					ui.TaskInfo.gameObject.SetActive(true);
 					
 				}
 			}
@@ -152,6 +152,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		var factory = GetFactory();
 		if (factory != null)
 		{
+			FData.NewData();
 			FData.CopyData(factory);
 			for (int i = 0; i < 30; i++)
 			{
@@ -161,7 +162,9 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			info = ST.复制 + ST.成功 + ":" + SelectData.AllData.Count;
 			string temps;
 			SelectData.CheckItem(null, out string ts1, out int i1, out temps, out int i2);
-			info1 += temps;
+			Debug.Log(temps.Length);
+			Debug.Log(temps);
+			info +="\n"+temps;
 		}
 	}
 
@@ -209,6 +212,16 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		return null;
     }
 
+	FactoryData GetDataInPage(int i)
+    {
+		int index = atPage * 7 + i;
+		if (index < DataList.Count)
+		{
+			return DataList[index];
+		}
+		return null;
+	}
+
 
 	void SaveData()
 	{
@@ -219,7 +232,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			DataList.Add(FData.Data);
 			info = "保存在BepInEx\\config\\PlanetFactoryData";
 			FData.NewData();
-
+			PageTo();
 		}
 	}
 
@@ -270,9 +283,9 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		atPage = 0;
 		PageTo();
 	}
+
 	void PageTo()
 	{
-
 		ui.ButtonDataPage.text = "" + (atPage + 1);
 
 		int start = atPage * 7;
@@ -282,9 +295,9 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			for (int i = 0; i < 7; i++)
 			{
 				ui.ButtonDataFile[i].SetActive(true);
-				var temp = GetData(i);
+				var temp = GetDataInPage(i);
 				if (temp != null)
-					ui.ButtonDataFile[i].text.text = GetData(i).Name;
+					ui.ButtonDataFile[i].text.text =temp.Name;
 				else
 				{
 					ui.ButtonDataFile[i].text.text = string.Empty;
@@ -440,7 +453,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				info1 = ST.复制 + ST.成功 + ":" + SelectData.AllData.Count;
 				string temps;
 				SelectData.CheckItem(null, out string ts1, out int i1, out temps, out int i2);
-				info1 += temps;
+				info += temps;
 			}
 			if (GUI.Button(new Rect(610, h + 130, 120, 60), $"{ST.移除}{ST.o}{ST.选定}{ST.o}{ST.区域}{ST.o}{ST.建筑}"))
 			{
@@ -545,6 +558,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			area[5] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[5], $"6:{ST.西},{ST.北},{ST.左}");
 			area[6] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[6], $"7:{ST.西},{ST.南},{ST.右}");
 			area[7] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[7], $"8:{ST.西},{ST.南},{ST.左}");
+			GUI.Label(new Rect(10, h + 10, 160, 20), "Data Version:" + SelectData.version);
 			SelectData.tip= GUI.TextArea(new Rect(505, h + 10, 300, 150), SelectData.tip);
 			if(GUI.Button(new Rect(770, h + 165, 60, 25), ST.保存))
             {
@@ -556,8 +570,8 @@ public class CopyPlanetFactory : BaseUnityPlugin
    //         }
 			if (!isAreaSelect)
 			{
-				GUI.Label(new Rect(840, 10, 250, haveItemCount * 16), haveItem, haveStyle);
-				GUI.Label(new Rect(840, 30 + haveItemCount * 16, 250, noItemCount * 16), noItem, noStyle);
+				GUI.Label(new Rect(w+40, 10, 250, haveItemCount * 16), haveItem, haveStyle);
+				GUI.Label(new Rect(w+40, 30 + haveItemCount * 16, 250, noItemCount * 16), noItem, noStyle);
 			}
 			//area[0] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[0], "1:+X,+Y,+Z");
 			//area[1] = GUI.Toggle(new Rect(455, 20 * bc++, 100, 20), area[1], "2:+X,+Y, -Z");

@@ -83,3 +83,5 @@ Divided by the equator, north and south, left and right
 2.2.4 修复bug
 
 2.2.5 修复bug，蓝图加入描述
+
+2.3.0 修复bug，支持高层研究塔

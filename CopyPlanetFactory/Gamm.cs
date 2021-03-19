@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -87,6 +88,14 @@ public class Gamm : MyPreBuildData
         string s = $"{ pd.protoId},{pd.modelIndex},{pd.pos.x},{pd.pos.y},{pd.pos.z},{pd.rot.x},{pd.rot.y},{pd.rot.z},{pd.rot.w},{oldEId}";
         s += $",{produceId},{conn0},{conn1}";
         return s;
+    }
+
+    public override void Export(BinaryWriter w)
+    {
+        ExportBaesData(w);
+        w.Write(produceId);
+        w.Write(conn0);
+        w.Write(conn1);
     }
 }
 

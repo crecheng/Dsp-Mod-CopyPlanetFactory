@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -77,8 +78,17 @@ public class Belt : MyPreBuildData
 		return s;
 	}
 
+    public override void Export(BinaryWriter w)
+    {
+		ExportBaesData(w);
+		w.Write(beltOut);
+		w.Write(beltIn1);
+		w.Write(beltIn2);
+		w.Write(beltIn3);
+	}
 
-	public override bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
+
+    public override bool ConnPreBelt(PlanetFactory factory, Dictionary<int, MyPreBuildData> preIdMap)
 	{
 		if (beltOut == 0 || preIdMap.ContainsKey(beltOut))
 		{

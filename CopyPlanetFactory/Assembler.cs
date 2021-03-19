@@ -42,6 +42,12 @@ public class Assembler : MyPreBuildData
 		return s;
 	}
 
+    public override void Export(BinaryWriter w)
+    {
+		ExportBaesData(w);
+		w.Write(pd.recipeId);
+    }
+
     public override MyPreBuildData GetCopy()
     {
 		return new Assembler(this.pd)

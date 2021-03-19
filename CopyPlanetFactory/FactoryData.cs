@@ -33,6 +33,7 @@ public class FactoryData
 
 	public string tip = string.Empty;
 
+	public string version = string.Empty;
 
 
 	/// <summary>
@@ -78,6 +79,7 @@ public class FactoryData
 		AllData.Clear();
 		CheckBeltData.Clear();
 		tip = string.Empty;
+		version = string.Empty;
 	}
 
 	public string Name;
@@ -106,11 +108,12 @@ public class FactoryData
 		}
 		string[] s = new string[Count + 9 + 8];
 		//文件名
-		s[0] = dataVersion.ToString();
-		s[1] = Name;
-		s[2] = GetItemCountData(true);
-		s[3] = tip;
-		int i = 4;
+		int i = 0;
+		s[i++] = dataVersion.ToString();
+		s[i++] = Name;
+		s[i++] = GetItemCountData(true);
+		s[i++] = tip;
+		s[i++] = version;
 		for(; i < 10; i++)
         {
 			s[i] = string.Empty;
@@ -129,6 +132,45 @@ public class FactoryData
 		try
 		{
 			File.WriteAllLines(fileName, s);
+			//ExportBinary();
+		}
+		catch (Exception e)
+		{
+			Debug.LogError(e.Message + "\n" + e.StackTrace);
+		}
+	}
+
+	public void ExportBinary()
+	{
+		try
+		{
+			if (!Directory.Exists(path))
+			{
+				Directory.CreateDirectory(path);
+			}
+			string fileName = path + "\\" + Name + ".dat";
+			using (FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate))
+			{
+				using (BinaryWriter binaryWriter = new BinaryWriter(fs))
+				{
+					binaryWriter.Write(dataVersion);
+					binaryWriter.Write(Name);
+					ExportItemData(binaryWriter);
+					binaryWriter.Write(tip);
+					binaryWriter.Write(version);
+					binaryWriter.Write(0L);
+					binaryWriter.Write(0L);
+					binaryWriter.Write(0L);
+					binaryWriter.Write(0L);
+					binaryWriter.Write(0L);
+					binaryWriter.Write(AllData.Count);
+					foreach (var d in AllData)
+					{
+						binaryWriter.Write((short)d.type);
+						d.Export(binaryWriter);
+					}
+				}
+			}
 		}
 		catch (Exception e)
 		{
@@ -156,6 +198,7 @@ public class FactoryData
 							Name = s[1];
 							AddItemCount(s[2]);
 							tip = s[3];
+							this.version = s[4];
 							int i = 10;
                             for (; i < s.Length; i++)
                             {
@@ -374,6 +417,7 @@ public class FactoryData
 			CopyBuildData(factory, i);
 		}
 		CopyMultiLayerBuild(factory);
+		version = CopyPlanetFactory.Version;
 	}
 
 	public int CheckAllData()
@@ -396,47 +440,100 @@ public class FactoryData
 
 	public void CopyMultiLayerBuild(PlanetFactory factory,List<int> id=null)
     {
-		List<int> lab0 = new List<int>();
-		Dictionary<int, int> labKey = new Dictionary<int, int>();
-		for(int i = 1; i < factory.factorySystem.labCursor; i++)
-        {
-			var d = factory.factorySystem.labPool[i];
-            if (d.entityId > 0)
-            {
-                if (d.nextLabId == 0)
-                {
-					lab0.Add(i);
-                }
-                else
-                {
-					labKey.Add(d.nextLabId, i);
-                }
-            }
-        }
-		foreach(int d in lab0)
-        {
-			int temp = d;
-			do
+		if (id == null)
+		{
+			for (int labid = 1; labid < factory.factorySystem.labCursor; labid++)
 			{
-				if (labKey.ContainsKey(temp))
+				var ap = factory.factorySystem.labPool[labid];
+				if (ap.entityId > 0)
 				{
-					temp = labKey[temp];
+					//创建蓝图的研究所数据
+					int nextid = 0;
+					if (ap.nextLabId > 0)
+					{
+						//获取高一层的研究所的eid
+						nextid = factory.factorySystem.labPool[ap.nextLabId].entityId;
+					}
+					MyPreBuildData temp = new Lab(GetPreDate(factory.entityPool[ap.entityId]), ap.researchMode, ap.recipeId, ap.techId, nextid);
+					temp.oldEId = ap.entityId;
+					AllData.Add(temp);
+					AddItemCount(factory.entityPool[ap.entityId].protoId);
 				}
-				else
-					break;
-			} while (true);
-			var ld = factory.factorySystem.labPool[temp];
-			int eid = ld.entityId;
-			var ed = factory.entityPool[eid];
-
-			if (id == null||(id!=null&&id.Contains(eid)))
-			{
-				MyPreBuildData t = new Lab(GetPreDate(ed), ld.researchMode, ld.recipeId, ld.techId);
-				t.oldEId = eid;
-				AllData.Add(t);
-				AddItemCount(ed.protoId);
 			}
 		}
+        else
+        {
+			Dictionary<int, int> l = new Dictionary<int, int>();
+			List<List<int>> lab0 = new List<List<int>>();
+			//该研究所在其上一层的研究所eid与该研究所的eid映射
+			Dictionary<int, int> labKey = new Dictionary<int, int>();
+			for (int j = 1; j < factory.factorySystem.labCursor; j++)
+			{
+				var d = factory.factorySystem.labPool[j];
+				if (d.entityId > 0)
+				{
+					if (d.nextLabId == 0)
+					{
+						//如果没有上一层
+						//即next为0，新建链表，并且加入链表头
+						lab0.Add(new List<int>() { j });
+						//该研究所在第几楼
+						l.Add(d.entityId, lab0.Count - 1);
+					}
+					else
+					{
+						//如果有下一层就加入数据中，等待找堆
+						labKey.Add(d.nextLabId, j);
+					}
+				}
+			}
+			int i = 0;
+			//将数据还原成研究楼
+			foreach (var d in lab0)
+			{
+				int temp = d.First();
+				do
+				{
+					if (labKey.ContainsKey(temp))
+					{
+						temp = labKey[temp];
+						d.Add(temp);
+						//查找eid
+						l.Add(factory.factorySystem.labPool[temp].entityId, i);
+					}
+					else
+						break;
+				} while (true);
+
+				i++;
+			}
+			//已经加入数据的研究楼
+			HashSet<int> haveAdd = new HashSet<int>();
+			HashSet<int> haveAddLab = new HashSet<int>();
+            foreach (var d in id)
+            {
+                if (l.ContainsKey(d))
+                {
+                    if (!haveAdd.Contains(l[d]))
+                    {
+                        foreach (var lab in lab0[l[d]])
+                        {
+							if (!haveAddLab.Contains(lab))
+							{
+								var ld = factory.factorySystem.labPool[lab];
+								int eid = ld.entityId;
+								var ed = factory.entityPool[eid];
+								MyPreBuildData t = new Lab(GetPreDate(ed), ld.researchMode, ld.recipeId, ld.techId, ld.nextLabId);
+								t.oldEId = eid;
+								AllData.Add(t);
+								AddItemCount(ed.protoId);
+							}
+						}
+                    }
+                }
+            }
+		}
+
 		List<int> storge0 = new List<int>();
 		Dictionary<int, int> storgeKey = new Dictionary<int, int>();
 		for (int i = 1; i < factory.factoryStorage.storageCursor; i++)
@@ -491,7 +588,7 @@ public class FactoryData
 
 		if (ed.protoId > 0)
 		{
-			if (ed.labId > 0 || ed.storageId > 0 || ed.tankId > 0)
+			if (ed.labId>0&& ed.storageId > 0 || ed.tankId > 0)
 				return;
 			MyPreBuildData temp = null;
 
@@ -615,6 +712,12 @@ public class FactoryData
 			}
 		}
 	}
+
+	/// <summary>
+	/// 复制选定区域建筑
+	/// </summary>
+	/// <param name="factory"></param>
+	/// <param name="id">选定区域建筑eid</param>
 	public void CopyData(PlanetFactory factory, List<int> id)
 	{
 		Clear();
@@ -625,6 +728,7 @@ public class FactoryData
 			CopyBuildData(factory, i);
 		}
 		CopyMultiLayerBuild(factory, id);
+		version = CopyPlanetFactory.Version;
 	}
 
 	public IEnumerator CheckBelt(float time)
@@ -695,6 +799,16 @@ public class FactoryData
 			s += isFile ? "," : "\n";
 		}
 		return s;
+	}
+
+	public void ExportItemData(BinaryWriter w)
+    {
+		w.Write(ItemNeed.Count);
+		foreach (var d in ItemNeed)
+		{
+			w.Write(d.Key);
+			w.Write(d.Value);
+		}
 	}
 
 	/// <summary>
@@ -771,6 +885,7 @@ public class FactoryData
 			}
 			foreach (var d in ItemNeed)
 			{
+
 				if (Common.FindItem(d.Key,p) >= d.Value)
 				{
 					count1++;
@@ -804,7 +919,6 @@ public class FactoryData
 			}
 			foreach (var d in ItemNeed)
 			{
-
 				count2++;
 				var item = LDB.items.Select(d.Key);
 				if (item != null)

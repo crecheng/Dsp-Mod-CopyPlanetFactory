@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -106,13 +107,19 @@ public class Fractionate : MyPreBuildData
         return false;
     }
 
-
-
     public override string GetData()
     {
         string s = $"{ pd.protoId},{pd.modelIndex},{pd.pos.x},{pd.pos.y},{pd.pos.z},{pd.rot.x},{pd.rot.y},{pd.rot.z},{pd.rot.w},{oldEId}";
         s += $",{c0},{c1},{c2}";
         return s;
+    }
+
+    public override void Export(BinaryWriter w)
+    {
+        ExportBaesData(w);
+        w.Write(c0);
+        w.Write(c1);
+        w.Write(c2);
     }
 }
 
