@@ -463,7 +463,7 @@ public class FactoryData
 		}
         else
         {
-			Dictionary<int, int> l = new Dictionary<int, int>();
+			Dictionary<int, int> lablou = new Dictionary<int, int>();
 			List<List<int>> lab0 = new List<List<int>>();
 			//该研究所在其上一层的研究所eid与该研究所的eid映射
 			Dictionary<int, int> labKey = new Dictionary<int, int>();
@@ -478,7 +478,7 @@ public class FactoryData
 						//即next为0，新建链表，并且加入链表头
 						lab0.Add(new List<int>() { j });
 						//该研究所在第几楼
-						l.Add(d.entityId, lab0.Count - 1);
+						lablou.Add(d.entityId, lab0.Count - 1);
 					}
 					else
 					{
@@ -499,7 +499,7 @@ public class FactoryData
 						temp = labKey[temp];
 						d.Add(temp);
 						//查找eid
-						l.Add(factory.factorySystem.labPool[temp].entityId, i);
+						lablou.Add(factory.factorySystem.labPool[temp].entityId, i);
 					}
 					else
 						break;
@@ -512,11 +512,11 @@ public class FactoryData
 			HashSet<int> haveAddLab = new HashSet<int>();
             foreach (var d in id)
             {
-                if (l.ContainsKey(d))
+                if (lablou.ContainsKey(d))
                 {
-                    if (!haveAdd.Contains(l[d]))
+                    if (!haveAdd.Contains(lablou[d]))
                     {
-                        foreach (var lab in lab0[l[d]])
+                        foreach (var lab in lab0[lablou[d]])
                         {
 							if (!haveAddLab.Contains(lab))
 							{
@@ -527,8 +527,10 @@ public class FactoryData
 								t.oldEId = eid;
 								AllData.Add(t);
 								AddItemCount(ed.protoId);
+								haveAddLab.Add(lab);
 							}
 						}
+						haveAdd.Add(lablou[d]);
                     }
                 }
             }
@@ -613,8 +615,6 @@ public class FactoryData
 			{
 				var ip = fSystem.inserterPool[ed.inserterId];
 				InserterComponent tempp = ip;
-				var target = factory.entityPool[tempp.insertTarget];
-				var pick = factory.entityPool[tempp.pickTarget];
 				int outConn = factory.entityConnPool[i * 16];
 				int inConn = factory.entityConnPool[i * 16 + 1];
 				temp = new Inserter(GetPreDate(tempp, ed), ip, outConn, inConn);

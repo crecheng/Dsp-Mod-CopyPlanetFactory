@@ -12,7 +12,7 @@ using UnityEngine.UI;
 [BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory",CopyPlanetFactory.Version )]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
-	public const string Version = "2.3.0";
+	public const string Version = "2.3.1";
 	public const bool isDebug = false;
 	public static bool isLoad = false;
 	static MyUI ui;
