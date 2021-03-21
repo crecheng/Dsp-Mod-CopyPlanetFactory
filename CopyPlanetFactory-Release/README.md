@@ -87,3 +87,5 @@ Divided by the equator, north and south, left and right
 2.3.0 修复bug，支持高层研究塔
 
 2.3.1 修复重复计算研究所的bug
+
+2.3.2 修复了高层研究所会出现bug

@@ -12,7 +12,7 @@ using UnityEngine.UI;
 [BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory",CopyPlanetFactory.Version )]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
-	public const string Version = "2.3.1";
+	public const string Version = "2.3.2";
 	public const bool isDebug = false;
 	public static bool isLoad = false;
 	static MyUI ui;
@@ -162,8 +162,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			info = ST.复制 + ST.成功 + ":" + SelectData.AllData.Count;
 			string temps;
 			SelectData.CheckItem(null, out string ts1, out int i1, out temps, out int i2);
-			Debug.Log(temps.Length);
-			Debug.Log(temps);
 			info +="\n"+temps;
 		}
 	}
@@ -722,10 +720,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 					Buginfo += "\nrot:" + ed.rot;
 					Buginfo += "\nsplitterId:" + ejId;
 					Buginfo += "\nmodelIndex:" + ce.modelIndex;
-					Buginfo += "\nassemblerId:" + ce.assemblerId;
-					Buginfo += "\npowerGenId:" + ce.powerGenId;
-					Buginfo += "\npowerNodeId:" + ce.powerNodeId;
-					Buginfo += "\npowerExcId:" + ce.powerExcId;
+					Buginfo += "\nlabId:" + ce.labId;
                     //var eul = ed.rot.eulerAngles;
                     //Buginfo += "\nrot.eulerAngles:" + eul;
                     //Buginfo += "\nrot.eulerAngles.x:" + eul.x;
@@ -768,19 +763,14 @@ public class CopyPlanetFactory : BaseUnityPlugin
                             }
                         }
                     }
-                    if (ce.powerExcId > 0)
+                    if (ce.labId > 0)
                     {
-						var cd = player.planetData.factory.powerSystem.excPool[ce.powerExcId];
-						Buginfo += "\nbelt0:" + cd.belt0;
-						Buginfo += "\nbelt1:" + cd.belt1;
-						Buginfo += "\nbelt2:" + cd.belt2;
-						Buginfo += "\nbelt3:" + cd.belt3;
-						Buginfo += "\ninputSlot:" + cd.inputSlot;
-						Buginfo += "\noutputSlot:" + cd.outputSlot;
-						Buginfo += "\nisOutput0:" + cd.isOutput0;
-						Buginfo += "\nisOutput1:" + cd.isOutput1;
-						Buginfo += "\nisOutput2:" + cd.isOutput2;
-						Buginfo += "\nisOutput3:" + cd.isOutput3;
+
+						var cd = player.planetData.factory.factorySystem.labPool[ce.labId];
+
+						Buginfo += "\n___________________";
+						Buginfo += "\nnextLabId:" + cd.nextLabId;
+						Buginfo += "\nbelt1:" + cd.served;
 
 					}
                     //if (ejId > 0)

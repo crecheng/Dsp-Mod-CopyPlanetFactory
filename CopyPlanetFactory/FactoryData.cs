@@ -522,8 +522,9 @@ public class FactoryData
 							{
 								var ld = factory.factorySystem.labPool[lab];
 								int eid = ld.entityId;
+								int other = factory.factorySystem.labPool[ld.nextLabId].entityId;
 								var ed = factory.entityPool[eid];
-								MyPreBuildData t = new Lab(GetPreDate(ed), ld.researchMode, ld.recipeId, ld.techId, ld.nextLabId);
+								MyPreBuildData t = new Lab(GetPreDate(ed), ld.researchMode, ld.recipeId, ld.techId, other);
 								t.oldEId = eid;
 								AllData.Add(t);
 								AddItemCount(ed.protoId);

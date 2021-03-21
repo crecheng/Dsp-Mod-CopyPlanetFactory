@@ -216,7 +216,7 @@ public class FactoryTask
     {
         foreach (var d in AfterSetData)
         {
-			d.SetData(planetFactory,d.newEId );
+			d.SetData(planetFactory, d.newEId);
         }
 		AfterSetData.Clear();
     }

@@ -69,7 +69,6 @@ public class Lab:MyPreBuildData
     {
 		if (nextLab == 0)
 			return true;
-		Debug.Log(nextLab);
         if (nextLab > 0)
         {
             if (preIdMap.ContainsKey(nextLab))
@@ -96,6 +95,7 @@ public class Lab:MyPreBuildData
 		factory.factorySystem.labPool[labId].SetFunction(isResearchMode, LabRecpId, LabTech, factory.entitySignPool);
 
 	}
+
 
 	public override MyPreBuildData GetCopy()
     {
