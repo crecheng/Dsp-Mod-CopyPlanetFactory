@@ -12,7 +12,7 @@ using UnityEngine.UI;
 [BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory",CopyPlanetFactory.Version )]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
-	public const string Version = "2.3.2";
+	public const string Version = "2.3.4";
 	public const bool isDebug = false;
 	public static bool isLoad = false;
 	static MyUI ui;
@@ -30,7 +30,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	private static FactoryTask FData = new FactoryTask();
 	private static List<FactoryData> DataList = new List<FactoryData>();
 	private static string Buginfo = string.Empty;
-	private const float RECT_WEIDTH = 300f;
 	private static Rect rect = new Rect(30f, 30f, 1000, 600);
 	private static GUIStyle haveStyle = new GUIStyle();
 	private static GUIStyle noStyle = new GUIStyle();
@@ -172,10 +171,19 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		var player = GetPlayer();
 		if (player != null && PastIngData == null)
 		{
-
-			FData.PasteDate(player, area);
-			PastIngData = FData;
+			if (FData.CheckCanPaste(player))
+			{
+				FData.PasteDate(player, area);
+				info = ST.粘贴 + ST.成功;
+				PastIngData = FData;
+			}
+			else
+			{
+				//提示物品不足
+				info =  ST.物品 + ST.o + ST.不足 + "\n" + ST.noItemTip;
+			}
 		}
+
 
 	}
 	void ClearData()
@@ -203,6 +211,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				DataList[index].CheckItem(null, out haveItem, out haveItemCount, out noItem, out noItemCount);
             }
 			isAreaSelect = false;
+			isLookLocal = false;
 			SelectData = DataList[index];
 			FData.Data = SelectData;
 			return DataList[index];
@@ -240,7 +249,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		isShowImg = true;
 		isLookLocal = true;
 	}
-
 
 
 	static void readFile()
@@ -408,6 +416,8 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		if (GUI.Button(new Rect(ImgRect.x + ImgRect.width, ImgRect.y + 3, 20, 20), "X"))
 		{
 			isShowImg = false;
+			isLookLocal = false;
+			isAreaSelect = false;
 		}
 
 		if (GetFactory() != null&&isLookLocal)
@@ -416,10 +426,18 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			{
 				RemoverAllBuilding();
 			}
-			if(GUI.Button(new Rect(750, h + 80, 120, 40), $"{ST.加满}{ST.o}{ST.物流站} {ST.飞船}{ST.和}{ST.翘曲}"))
+			if(GUI.Button(new Rect(735, h + 80, 120, 40), $"{ST.加满}{ST.o}{ST.物流站} {ST.飞船}{ST.和}{ST.翘曲}"))
 			{
 				AddShip();
             }
+			if (GUI.Button(new Rect(860, h + 80, 120, 40), $"{ST.移除}{ST.o}{ST.noConnPaw}"))
+			{
+				ClearNotConnPaw();
+			}
+			if (GUI.Button(new Rect(860, h + 120, 120, 40), $"{ST.尝试连接断开传送带}"))
+			{
+				TryConnBelt();
+			}
 		}
         if (CheckData()&&isLookLocal)
         {
@@ -557,7 +575,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			area[6] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[6], $"7:{ST.西},{ST.南},{ST.右}");
 			area[7] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[7], $"8:{ST.西},{ST.南},{ST.左}");
 			GUI.Label(new Rect(10, h + 10, 160, 20), "Data Version:" + SelectData.version);
-			SelectData.tip= GUI.TextArea(new Rect(505, h + 10, 300, 150), SelectData.tip);
+			SelectData.tip= GUI.TextArea(new Rect(505, h + 10, 300, 150), SelectData.tip.Length>0?SelectData.tip:ST.DataTip);
 			if(GUI.Button(new Rect(770, h + 165, 60, 25), ST.保存))
             {
 				SelectData.Export();
@@ -641,9 +659,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 	}
 
 
-
-
-
 	public void AreaFalse()
     {
 		for(int i = 0; i < 8; i++)
@@ -690,18 +705,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			if (!PastIngData.Working)
 				PastIngData = null;
         }
-		//if (__instance != null && __instance.mainPlayer != null && __instance.mainPlayer.planetData != null)
-		//{
-		//	PlanetData planetData = __instance.mainPlayer.planetData;
-		//	if (planetData.factory != null)
-		//	{
-		//		int count = FData.Data.Count;
-		//		info = $"{ST.复制建筑}：{count}\n{ST.成功}：{buildS} {ST.重叠}：{buildF1}" +
-		//			(PastIngData != null?$"\n【-{ST.正在复制}-】\n":"")+
-		//			(FData.Data.CheckBeltData.Count>0?$"\n无出货传送带{FData.Data.CheckBeltData.Count}":"")+
-		//			$"\n暂时忽略地形碰撞检测\n";
-		//	}
-		//}
 		if (isDebug)
 		{
 			if (CheckData())
@@ -763,14 +766,14 @@ public class CopyPlanetFactory : BaseUnityPlugin
                             }
                         }
                     }
-                    if (ce.labId > 0)
+                    if (ce.inserterId > 0)
                     {
 
-						var cd = player.planetData.factory.factorySystem.labPool[ce.labId];
+						var cd = player.planetData.factory.factorySystem.inserterPool[ce.inserterId];
 
 						Buginfo += "\n___________________";
-						Buginfo += "\nnextLabId:" + cd.nextLabId;
-						Buginfo += "\nbelt1:" + cd.served;
+						Buginfo += "\ninsertTarget:" + cd.insertTarget;
+						Buginfo += "\npickTarget:" + cd.pickTarget;
 
 					}
                     //if (ejId > 0)
@@ -878,6 +881,88 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			PastIngData = null;
         }
     }
+
+	/// <summary>
+	/// 清除无连接爪子
+	/// </summary>
+	void ClearNotConnPaw()
+    {
+		//获得当前的工厂对象
+		var factory = GetFactory();
+        if (factory != null)
+        {
+			//获得无连接的爪子数据
+			var list = Common.FindNotConnPaw(factory);
+            foreach (var i in list)
+            {
+				//获得爪子的实体id
+				int eid = factory.factorySystem.inserterPool[i].entityId;
+                if (eid > 0)
+                {
+					//执行移除操作
+					Common.RemoveBuild(GameMain.mainPlayer, factory, eid);
+                }
+            }
+        }
+    }
+
+	/// <summary>
+	/// 尝试连接无连接传送带
+	/// </summary>
+	void TryConnBelt()
+	{
+		//获得当前的工厂对象
+		var factory = GetFactory();
+		if (factory != null)
+		{
+			List<int> Out = new List<int>();
+			List<int> In = new List<int>();
+			//获取无连接的传送带数据
+			Common.FindDisconnectBelt(factory, Out, In);
+            foreach (var i in Out)
+            {
+				//获取传送带数据
+				var belt= factory.cargoTraffic.beltPool[i];
+				var eid = belt.entityId;
+				//获取与其连接的in的传送带
+				factory.ReadObjectConn(eid, 1, out bool isout, out int other, out int otherSlot);
+				var belt1 = factory.cargoTraffic.beltPool[factory.entityPool[other].beltId];
+                if (belt1.entityId > 0)
+                {
+					//计算传送带之间的距离
+					var dis = (factory.entityPool[belt1.entityId].pos - factory.entityPool[eid].pos).sqrMagnitude;
+					//预计下一个传送带的位置
+					var pos = factory.entityPool[eid].pos + (factory.entityPool[belt1.entityId].pos - factory.entityPool[eid].pos);
+					int target = 0;
+					//设置最小距离为两倍距离，大于两倍距离就舍去
+					float minDis = 2f * dis;
+                    foreach (var j in In)
+                    {
+						//获取传送带数据
+						var belt2 = factory.cargoTraffic.beltPool[j];
+						var entity = factory.entityPool[belt2.entityId];
+						//获取两者之间的距离
+						var dis1= (entity.pos - factory.entityPool[eid].pos).sqrMagnitude;
+                        if (dis1< minDis)
+                        {
+							target = j;
+							minDis = dis1;
+                        }
+					}
+					//当找到合适的传送带时
+                    if (target !=0)
+                    {
+						var belt2 = factory.cargoTraffic.beltPool[target];
+						var entity = factory.entityPool[belt2.entityId];
+						//进行连接
+						factory.WriteObjectConn(eid, 0, true, belt2.entityId, 1);
+						factory.cargoTraffic.AlterBeltConnections(i, belt2.id, belt.backInputId, belt.leftInputId, belt.rightInputId);
+					}
+                }
+            }
+		}
+
+	}
 
 	static bool CheckData()
     {

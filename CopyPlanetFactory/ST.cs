@@ -20,6 +20,49 @@ public class ST
             }
         }
     }
+
+    public static string DataTip
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "你可以在此处输入蓝图描述并保存";
+            }
+            else
+            {
+                return "you can write some describe and save";
+            }
+        }
+    }
+    public static string noConnPaw
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "无连接爪子";
+            }
+            else
+            {
+                return "no conn paw";
+            }
+        }
+    }
+    public static string 尝试连接断开传送带
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "尝试连接断开传送带";
+            }
+            else
+            {
+                return "try conn NoConn belt";
+            }
+        }
+    }
     public static string 撤销任务
     {
         get

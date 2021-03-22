@@ -89,3 +89,5 @@ Divided by the equator, north and south, left and right
 2.3.1 修复重复计算研究所的bug
 
 2.3.2 修复了高层研究所会出现bug
+
+2.3.4 加入移除无连接爪子，加入尝试连接断开的传送带

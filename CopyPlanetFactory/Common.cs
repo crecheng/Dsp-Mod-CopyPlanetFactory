@@ -33,6 +33,29 @@ public static class Common
 		return -1;
 	}
 
+	/// <summary>
+	/// 找出当前星球上的无连接的爪子
+	/// </summary>
+	/// <param name="factory"></param>
+	/// <returns></returns>
+	public static List<int> FindNotConnPaw(PlanetFactory factory)
+    {
+		//新建列表
+		List<int> temp = new List<int>();
+		//遍历工厂的全部爪子
+        for (int i = 1; i < factory.factorySystem.inserterCursor; i++)
+        {
+			//获得爪子数据
+			var inserter = factory.factorySystem.inserterPool[i];
+			//当爪子有一段无连接时，加入列表
+            if (inserter.insertTarget == 0 || inserter.pickTarget == 0)
+            {
+				temp.Add(i);
+            }
+        }
+		return temp;
+    }
+
 	public static int FindEmtryPreBeltConn(PlanetFactory factory, int pid, int start)
     {
 		for (; start < 4; start++)
@@ -114,6 +137,25 @@ public static class Common
 			return count;
 
 	}
+
+	public static void FindDisconnectBelt(PlanetFactory factory,List<int> OutNo, List<int> InNo)
+    {
+		//遍历所有传送带
+        for (int i = 1; i < factory.cargoTraffic.beltCursor; i++)
+        {
+			//获取传送带数据
+			var belt = factory.cargoTraffic.beltPool[i];
+			var eid = belt.entityId;
+			if (belt.outputId == 0 || factory.entityConnPool[eid * 16] == 0)
+				OutNo.Add(i);
+			if((belt.backInputId==0&&belt.leftInputId==0&&belt.rightInputId==0)||
+				(factory.entityConnPool[eid*16+1]==0&& factory.entityConnPool[eid * 16 + 2] == 0 && factory.entityConnPool[eid * 16 + 3] == 0))
+            {
+				InNo.Add(i);
+            }
+			
+        }
+    }
 
 	public static void TakeItem(int ItemId, PlanetFactory factory, Player player, int id)
 	{
