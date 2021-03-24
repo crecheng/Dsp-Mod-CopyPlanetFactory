@@ -583,6 +583,7 @@ public class FactoryData
 
 	}
 
+
 	public void CopyBuildData(PlanetFactory factory, int i)
 	{
 		var fSystem = factory.factorySystem;
@@ -861,6 +862,42 @@ public class FactoryData
 		isInitItem = true;
 	}
 
+	public void ChangeRecipe(int buildId,int recipeId)
+    {
+        foreach (var d in AllData)
+        {
+			if (buildId > 0)
+			{
+				if (d.ProtoId == buildId)
+				{
+					d.pd.recipeId = recipeId;
+				}
+            }
+            else if(buildId<0)
+            {
+				int oldRecipe = -buildId;
+                if (d.pd.recipeId == oldRecipe)
+                {
+					d.pd.recipeId = recipeId;
+                }
+            }
+        }
+    }
+
+	public HashSet<int> GetAllRecipe()
+    {
+		HashSet<int> recipe = new HashSet<int>();
+        foreach (var d in AllData)
+        {
+            if (d.pd.recipeId > 0)
+            {
+				recipe.Add(d.pd.recipeId);
+            }
+        }
+
+		return recipe;
+    }
+
 	/// <summary>
 	/// 检查玩家物品
 	/// </summary>
@@ -951,6 +988,7 @@ public class FactoryData
 		prebuild.rot2 = Quaternion.identity;
 		return prebuild;
 	}
+
 	/// <summary>
 	/// 获取工作台主要数据
 	/// </summary>

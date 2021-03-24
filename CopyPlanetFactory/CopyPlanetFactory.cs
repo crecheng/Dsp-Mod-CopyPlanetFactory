@@ -12,7 +12,7 @@ using UnityEngine.UI;
 [BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory",CopyPlanetFactory.Version )]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
-	public const string Version = "2.3.4";
+	public const string Version = "2.3.6";
 	public const bool isDebug = false;
 	public static bool isLoad = false;
 	static MyUI ui;
@@ -55,6 +55,8 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		var res = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("CopyPlanetFactory.copyplanetallui"));
 		ui=new MyUI(res.LoadAsset<GameObject> ("GameObject"));
 		rectImg = new RectImg();
+		BuildName = new Dictionary<string, int>();
+		RecipeName = new Dictionary<string, int>();
 	}
 
 	void Update()
@@ -82,13 +84,11 @@ public class CopyPlanetFactory : BaseUnityPlugin
 					var tRect = ui.TaskInfo.GetComponent<RectTransform>();
 					tRect.sizeDelta = new Vector2(300f, 400f);
 					ui.TaskInfo.gameObject.SetActive(true);
-					
 				}
 			}
 			ui.TaskInfo.text = info1;
 			ui.Info.text = info+"\n"+(PastIngData!=null?"\n当前任务："+PastIngData.Data.Name:"");
 		}
-		
 	}
 
 	void SetUIData()
@@ -113,10 +113,15 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			ui.ButtonDataFile[i].SetOnclik(delegate
 			{
 				SelectData = GetData(index);
+                if (SelectData != null)
+                {
+					AddChangeBuild(SelectData);
+                }
 				isShowImg = true;
 				isLookLocal = false;
 				isAreaSelect = false;
 				AreaTrue();
+				ui.ChangeRecipe.SetActive(true);
 			});
 		}
 		ui.ButtonDataUp.SetOnclik(delegate
@@ -143,6 +148,48 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				PastIngData.CancelTask(GameMain.mainPlayer);
 				PastIngData.PasteClear();
 			}
+		});
+
+		ui.SelectBuild.onValueChanged.AddListener(delegate
+		{
+			var name = ui.SelectBuild.options[ui.SelectBuild.value].text;
+            if (BuildName.ContainsKey(name))
+            {
+				AddChangeRecipe(BuildName[name]);
+            }
+		});
+
+		ui.ButtonChangeRecipe.SetOnclik(delegate
+		{
+			var name = ui.SelectBuild.options[ui.SelectBuild.value].text;
+			if (BuildName.ContainsKey(name))
+			{
+				var recipeName = ui.SelectRecipe.options[ui.SelectRecipe.value].text;
+                if (RecipeName.ContainsKey(recipeName))
+                {
+					int build = BuildName[name];
+					int recipe = RecipeName[recipeName];
+					if (SelectData != null)
+					{
+						SelectData.ChangeRecipe(build, recipe);
+						info = SelectData.Name + "\n" + "修改配方成功";
+					}
+                }
+			}
+		});
+
+		ui.ButtonOpneFile.SetOnclik(delegate
+		{
+			string path = System.Environment.CurrentDirectory + "\\BepInEx\\config\\PlanetFactoryData\\";
+			System.Diagnostics.Process.Start(path);
+		});
+
+		ui.ButtonReLoadFile.SetOnclik(delegate
+		{
+			readFile();
+			SelectData = null;
+			atPage = 0;
+			PageTo();
 		});
 	}
 	void CopyData()
@@ -183,7 +230,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 				info =  ST.物品 + ST.o + ST.不足 + "\n" + ST.noItemTip;
 			}
 		}
-
+		
 
 	}
 	void ClearData()
@@ -219,6 +266,115 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		return null;
     }
 
+	static Dictionary<string, int> BuildName;
+	static Dictionary<string, int> RecipeName;
+
+	public void AddChangeBuild(FactoryData data)
+    {
+		BuildName.Clear();
+		ui.SelectBuild.ClearOptions();
+		int i = 0;
+		BuildName.Add("NULL",0);
+		foreach (var d in data.ItemNeed)
+        {
+			var id = d.Key;
+			var item = LDB.items.Select(id);
+            if (item != null && item.prefabDesc.isAssembler)
+            {
+				BuildName.Add(item.name, d.Key);
+			}
+        }
+		var Oldre = data.GetAllRecipe();
+        foreach (var d in Oldre)
+        {
+			var recipe = LDB.recipes.Select(d);
+            if (recipe != null)
+            {
+				BuildName.Add(ST.old+ ":" + recipe.name, -d);
+            }
+        }
+		ui.SelectBuild.AddOptions(BuildName.Keys.ToList());
+    }
+
+	public void AddChangeRecipe(int itemId)
+	{
+		RecipeName.Clear();
+		ui.SelectRecipe.ClearOptions();
+		RecipeName.Add("NULL", 0);
+		if (itemId == 0)
+			return;
+
+		int type = -1;
+		if (itemId > 0)
+		{
+			var item = LDB.items.Select(itemId);
+            if (item != null)
+            {
+				type = (int)item.prefabDesc.assemblerRecipeType;
+            }
+		}
+        else if(itemId<0)
+        {
+			var item = LDB.recipes.Select(-itemId);
+			if (item != null)
+			{
+				type = (int)item.Type;
+			}
+		}
+        if (type > -1)
+        {
+			foreach (RecipeProto d in LDB.recipes.dataArray)
+			{
+				if (d.Type != (ERecipeType)type)
+					continue;
+				var id = d.ID;
+				var items = d.Items;
+				var res = d.Results;
+				string option = "";
+                for (int i = 0;;)
+                {
+					var temp= LDB.items.Select(res[i]);
+                    if (temp != null)
+                    {
+						if (temp != null)
+							option += temp.name;
+                    }
+					i++;
+					if ( i< res.Length)
+                    {
+						option += "+";
+                    }
+                    else
+                    {
+						break;
+                    }
+                }
+				option += "\n";
+				for (int i = 0; ;)
+				{
+					var temp = LDB.items.Select(items[i]);
+					if (temp != null)
+					{
+						option += temp.name;
+					}
+					i++;
+					if (i < items.Length)
+					{
+						if(temp!=null)
+							option += "+";
+					}
+					else
+					{
+						break;
+					}
+				}
+				RecipeName.Add(option, id);
+
+			}
+		}
+		ui.SelectRecipe.AddOptions(RecipeName.Keys.ToList());
+	}
+
 	FactoryData GetDataInPage(int i)
     {
 		int index = atPage * 7 + i;
@@ -253,6 +409,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 
 	static void readFile()
     {
+
 		string path = System.Environment.CurrentDirectory + "\\BepInEx\\config\\PlanetFactoryData\\";
 		string filename = string.Empty;
 		try
@@ -263,6 +420,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			}
 			else
 			{
+				DataList.Clear();
 				var f = Directory.GetFiles(path);
 				foreach (var d in f)
 				{
@@ -416,6 +574,7 @@ public class CopyPlanetFactory : BaseUnityPlugin
 		if (GUI.Button(new Rect(ImgRect.x + ImgRect.width, ImgRect.y + 3, 20, 20), "X"))
 		{
 			isShowImg = false;
+			ui.ChangeRecipe.SetActive(false);
 			isLookLocal = false;
 			isAreaSelect = false;
 		}
@@ -576,14 +735,12 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			area[7] = GUI.Toggle(new Rect(400, h + 20 +20 * bc++, 100, 20), area[7], $"8:{ST.西},{ST.南},{ST.左}");
 			GUI.Label(new Rect(10, h + 10, 160, 20), "Data Version:" + SelectData.version);
 			SelectData.tip= GUI.TextArea(new Rect(505, h + 10, 300, 150), SelectData.tip.Length>0?SelectData.tip:ST.DataTip);
-			if(GUI.Button(new Rect(770, h + 165, 60, 25), ST.保存))
+			SelectData.Name= GUI.TextArea(new Rect(505, h + 167, 240, 150), SelectData.Name);
+			if (GUI.Button(new Rect(740, h + 167, 60, 25), ST.保存))
             {
+				SelectData.Name= SelectData.Name.Replace("\\", "").Replace("/", "").Replace("?", "").Replace("|", "").Replace("<", "").Replace(">", "").Replace(":", "").Replace("*", "").Replace("\"", "");
 				SelectData.Export();
             }
-			//if(GUI.Button(new Rect(400, h + 20 + 20 * bc++, 100, 40), tempstring))
-   //         {
-			//	tempstring= SelectData.CheckAllData().ToString();
-   //         }
 			if (!isAreaSelect)
 			{
 				GUI.Label(new Rect(w+40, 10, 250, haveItemCount * 16), haveItem, haveStyle);
@@ -657,7 +814,6 @@ public class CopyPlanetFactory : BaseUnityPlugin
             }
 		}
 	}
-
 
 	public void AreaFalse()
     {

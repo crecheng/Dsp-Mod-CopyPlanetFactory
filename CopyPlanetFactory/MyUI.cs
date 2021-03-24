@@ -18,92 +18,145 @@ public class MyUI
 	/// 复制按钮组
 	/// </summary>
 	public ButtonGroup buttonCopy;
+
 	/// <summary>
 	/// 粘贴按钮组
 	/// </summary>
 	public ButtonGroup buttonPaste;
+
 	/// <summary>
 	/// 清空按钮组
 	/// </summary>
 	public ButtonGroup buttonClear;
+
 	/// <summary>
 	/// 保存按钮组
 	/// </summary>
 	public ButtonGroup buttonSave;
+
 	/// <summary>
 	/// 当前星球按钮组
 	/// </summary>
 	public ButtonGroup buttonLocal;
+
 	/// <summary>
 	/// 关闭按钮组
 	/// </summary>
 	public ButtonGroup buttonClose;
+
 	/// <summary>
 	/// 撤销任务按钮组
 	/// </summary>
 	public ButtonGroup buttonZ;
+
 	/// <summary>
 	/// 保存名字输入框
 	/// </summary>
 	public InputField SaveName;
+
 	/// <summary>
 	/// 实例对象
 	/// </summary>
 	public GameObject instance;
+
 	/// <summary>
 	/// 资源包实例
 	/// </summary>
 	public GameObject Res;
+
 	/// <summary>
 	/// 控制按钮
 	/// </summary>
 	public ButtonGroup ControlButton;
+
 	/// <summary>
 	/// 控制面板
 	/// </summary>
 	public GameObject ControlPanel;
+
 	/// <summary>
 	/// 控制面板的方位控制
 	/// </summary>
 	public RectTransform ControlPanelRect;
+
 	/// <summary>
 	/// 预留面板
 	/// </summary>
 	public GameObject MainPanel;
+
 	/// <summary>
 	/// 任务信息
 	/// </summary>
 	public Text TaskInfo;
 
 	public Text Info;
+
 	/// <summary>
 	/// 任务信息矩阵
 	/// </summary>
 	public RectTransform TaskInfoRect;
+
 	/// <summary>
 	/// 文件按钮组
 	/// </summary>
 	public ButtonGroup[]  ButtonDataFile;
+
 	/// <summary>
 	/// 文件上一页按钮
 	/// </summary>
 	public ButtonGroup  ButtonDataUp;
+
 	/// <summary>
 	/// 文件页数
 	/// </summary>
 	public Text  ButtonDataPage;
+
 	/// <summary>
 	/// 文件下一页
 	/// </summary>
 	public ButtonGroup  ButtonDataDown;
+
+	/// <summary>
+	/// 更改配方界面
+	/// </summary>
+	public GameObject ChangeRecipe;
+
+	/// <summary>
+	/// 允许选择的建筑的下拉菜单
+	/// </summary>
+	public Dropdown SelectBuild;
+
+	/// <summary>
+	/// 允许选择的建筑的配方的下拉菜单
+	/// </summary>
+	public Dropdown SelectRecipe;
+
+	/// <summary>
+	/// 确认更改配方的按钮
+	/// </summary>
+	public ButtonGroup ButtonChangeRecipe;
+
+	/// <summary>
+	/// 打开文件夹按钮
+	/// </summary>
+	public ButtonGroup ButtonOpneFile;
+
+	/// <summary>
+	/// 重新载入文件按钮
+	/// </summary>
+	public ButtonGroup ButtonReLoadFile;
+
 	/// <summary>
 	/// 是否加载成功
 	/// </summary>
 	public bool isLoad = false;
+
 	/// <summary>
 	/// 是否显示
 	/// </summary>
 	public bool isShow = false;
+
+
 	public Vector3 firstPos1;
 	public Vector3 firstPos2;
 
@@ -140,6 +193,21 @@ public class MyUI
 		});
 		ControlButton.SetActive(true);
 
+		ChangeRecipe= instance.transform.Find("ChangeRecipeControl").gameObject;
+		ChangeRecipe.SetActive(false);
+
+
+		SelectBuild = ChangeRecipe.transform.Find("SelectBuild").GetComponent<Dropdown>();
+		SelectRecipe = ChangeRecipe.transform.Find("SelectRecipe").GetComponent<Dropdown>();
+
+		SelectBuild.options.Clear();
+		SelectBuild.options.Add(new Dropdown.OptionData("无"));
+
+		SelectRecipe.options.Clear();
+		SelectRecipe.options.Add(new Dropdown.OptionData("无"));
+
+		ButtonChangeRecipe = new ButtonGroup(GetButton(ChangeRecipe.transform, "Change"));
+		ButtonChangeRecipe.text.text = ST.更改;
 		Info = ControlPanel.transform.Find("Info").GetComponent<Text>();
 		Info.color = Color.white;
 		var filePanel = ControlPanel.transform.Find("FilesPanel").gameObject;
@@ -160,6 +228,10 @@ public class MyUI
 		TaskInfo.gameObject.AddComponent<Drag>();
 		//获取任务面板关闭按钮
 		var closeTask= TaskInfo.GetComponentInChildren<Button>();
+
+		ButtonOpneFile = new ButtonGroup(GetButton(ControlPanel.transform, "ButtonFile"));
+
+		ButtonReLoadFile = new ButtonGroup(GetButton(ControlPanel.transform, "ButtonFileFresh"));
 
 		closeTask.onClick.AddListener(delegate
 		{
@@ -183,7 +255,6 @@ public class MyUI
 		{
 			ControlPanel.SetActive(false);
 		});
-
 
 
 		var buttonHelp = ControlPanel.transform.Find("Help").GetComponent<Button>();

@@ -176,7 +176,6 @@ public class FactoryTask
 	/// <returns>物品是否够</returns>
 	public bool CheckCanPaste(Player player)
 	{
-
 		Data.CheckItem(player, out string s1, out int c1, out string s2, out int c2);
 		if (c2 == 0)
 		{

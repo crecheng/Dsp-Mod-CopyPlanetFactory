@@ -21,6 +21,38 @@ public class ST
         }
     }
 
+    public static string 更改
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "更改";
+            }
+            else
+            {
+                return "Change";
+            }
+        }
+    }
+
+    public static string old
+    {
+        get
+        {
+            if (Localization.language == Language.zhCN)
+            {
+                return "原";
+            }
+            else
+            {
+                return "old";
+            }
+        }
+    }
+
+
+
     public static string DataTip
     {
         get

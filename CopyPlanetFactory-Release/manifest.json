@@ -1,6 +1,6 @@
 {
     "name": "CopyPlanetFactory",
-    "version_number": "2.3.4",
+    "version_number": "2.3.6",
     "website_url": "https://github.com/crecheng/Dsp-Mod-CopyPlanetFactory",
     "description": "can copy all factory in local planet----------星球蓝图-复制当前星球的全部建筑",
     "dependencies": [

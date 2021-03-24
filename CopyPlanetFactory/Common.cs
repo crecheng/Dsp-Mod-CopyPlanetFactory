@@ -56,6 +56,7 @@ public static class Common
 		return temp;
     }
 
+
 	public static int FindEmtryPreBeltConn(PlanetFactory factory, int pid, int start)
     {
 		for (; start < 4; start++)
@@ -104,6 +105,13 @@ public static class Common
 
 	}
 
+	/// <summary>
+	/// 获取当前星球的物品数量
+	/// </summary>
+	/// <param name="ItemId">需要寻找的物品id</param>
+	/// <param name="factory">当前星球的工厂</param>
+	/// <param name="player">玩家实例</param>
+	/// <returns></returns>
 	public static int FindItem(int ItemId, PlanetFactory factory, Player player)
 	{
 		if (player.package.GetItemCount(ItemId) > 0)
@@ -138,6 +146,12 @@ public static class Common
 
 	}
 
+	/// <summary>
+	/// 查找无连接的传送带
+	/// </summary>
+	/// <param name="factory">当前星球的工厂</param>
+	/// <param name="OutNo">无出口的传送带</param>
+	/// <param name="InNo">无入口的传送带</param>
 	public static void FindDisconnectBelt(PlanetFactory factory,List<int> OutNo, List<int> InNo)
     {
 		//遍历所有传送带
@@ -157,6 +171,13 @@ public static class Common
         }
     }
 
+	/// <summary>
+	/// 拿走物品
+	/// </summary>
+	/// <param name="ItemId">物品id</param>
+	/// <param name="factory">星球工厂</param>
+	/// <param name="player">玩家</param>
+	/// <param name="id">要拿走的物品的容器id，0为玩家背包</param>
 	public static void TakeItem(int ItemId, PlanetFactory factory, Player player, int id)
 	{
 		if (id == 0)

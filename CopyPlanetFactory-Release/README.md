@@ -91,3 +91,7 @@ Divided by the equator, north and south, left and right
 2.3.2 修复了高层研究所会出现bug
 
 2.3.4 加入移除无连接爪子，加入尝试连接断开的传送带
+
+2.3.5 加入允许修改蓝图中的机器的配方
+
+2.3.6 修复bug，记入重新载入文件和打开文件夹
