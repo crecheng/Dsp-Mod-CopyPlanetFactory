@@ -12,7 +12,7 @@ using UnityEngine.UI;
 [BepInPlugin("crecheng.CopyPlanetFactory", "CopyPlanetFactory",CopyPlanetFactory.Version )]
 public class CopyPlanetFactory : BaseUnityPlugin
 {
-	public const string Version = "2.3.6";
+	public const string Version = "2.3.7";
 	public const bool isDebug = false;
 	public static bool isLoad = false;
 	static MyUI ui;
@@ -88,7 +88,9 @@ public class CopyPlanetFactory : BaseUnityPlugin
 			}
 			ui.TaskInfo.text = info1;
 			ui.Info.text = info+"\n"+(PastIngData!=null?"\n当前任务："+PastIngData.Data.Name:"");
+			//Debug.Log($"{ui.ControlPanel.GetComponent<RectTransform>().position}|{Input.mousePosition}");
 		}
+
 	}
 
 	void SetUIData()

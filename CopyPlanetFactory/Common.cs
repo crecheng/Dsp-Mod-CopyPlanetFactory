@@ -219,9 +219,10 @@ public static class Common
 				itemProto = LDB.items.Select((int)factory.prebuildPool[num].protoId);
             }
 			int itemId = (itemProto == null) ? 0 : itemProto.ID;
-			factory.DestructFinally(player, objId, ref itemId);
+			factory.DismantleFinally(player, objId, ref itemId);
 			player.package.AddItemStacked(itemId, 1);
 			UIItemup.Up(itemId, 1);
+			Debug.Log(itemId);
 			return true;
 		}
 		catch (Exception e)
